@@ -36,3 +36,11 @@ def success(name):
     """
     path = os.path.join(app.config['UPLOAD_FOLDER'], '{}.jpg'.format(name))
     return "https://cvlinebot.azurewebsites.net/uploads/{}".format(path)
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    """
+    create uri of upload image
+    """
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

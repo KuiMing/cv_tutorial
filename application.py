@@ -21,6 +21,16 @@ app.config['UPLOAD_FOLDER'] = ""
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 CATCHE = Cache(app, config={'CACHE_TYPE': 'null'})
 CATCHE.init_app(app)
+with open('key', 'r') as f:
+    subscription_key = f.read()
+f.close()
+
+with open('endpoint', 'r') as f:
+    endpoint = f.read()
+f.close()
+
+computervision_client = ComputerVisionClient(
+    endpoint, CognitiveServicesCredentials(subscription_key))
 
 @app.route("/hello")
 def hello():

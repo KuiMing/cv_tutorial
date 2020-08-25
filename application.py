@@ -24,10 +24,12 @@ CATCHE.init_app(app)
 with open('/home/key', 'r') as f:
     subscription_key = f.read()
 f.close()
+subscription_key = subscription_key.replace('\n', '')
 
 with open('/home/endpoint', 'r') as f:
     endpoint = f.read()
 f.close()
+endpoint = endpoint.replace('\n', '')
 
 computervision_client = ComputerVisionClient(
     endpoint, CognitiveServicesCredentials(subscription_key))

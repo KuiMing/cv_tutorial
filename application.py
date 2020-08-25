@@ -44,3 +44,16 @@ def uploaded_file(filename):
     create uri of upload image
     """
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+def clear_files():
+    """
+    clear files every 5 mins
+    """
+    file_list = glob.glob("*.jpg")
+    if len(file_list) > 0:
+        for i in file_list:
+            if int(i.replace(".jpg", "")) < (time.time_ns() - 60e9):
+                os.remove(i)
+
+

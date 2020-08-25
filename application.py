@@ -21,12 +21,31 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 CATCHE = Cache(app, config={'CACHE_TYPE': 'null'})
 CATCHE.init_app(app)
 
-@app.route("/")
+@app.route("/hello")
 def hello():
     return "Hello World!!!!!"
 
-@app.route("/ben")
-def hellob():
+
+@app.route('/', methods=['GET', 'POST'])
+def upload_file():
+    """
+    Upload file
+    """
+    if request.method == 'POST':
+        clear_files()
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            name = str(time.time_ns())
+            path = os.path.join(app.config['UPLOAD_FOLDER'], '{}.jpg'.format(name))
+            file.save(path)
+            redirect(url_for('uploaded_file', filename=path))
+            return redirect(url_for('success', name=name))
     return render_template('upload.html')
 
 @app.route('/success/<name>', methods=['GET', 'POST'])

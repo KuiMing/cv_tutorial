@@ -4,7 +4,8 @@ import time
 from flask import Flask, flash, request, redirect, url_for, render_template
 from flask import send_from_directory
 from flask_caching import Cache
-
+from azure.cognitiveservices.vision.computervision import ComputerVisionClient
+from msrest.authentication import CognitiveServicesCredentials
 
 
 
@@ -54,8 +55,15 @@ def success(name):
     Display success
     """
     path = os.path.join(app.config['UPLOAD_FOLDER'], '{}.jpg'.format(name))
-    return "https://cvlinebot.azurewebsites.net/uploads/{}".format(path)
-
+    remote_image_url = "https://cvlinebot.azurewebsites.net/uploads/{}".format(
+        path)
+    description_results = computervision_client.describe_image(
+        remote_image_url)
+    output = ""
+    for caption in description_results.captions:
+        output += "'{}' with confidence {:.2f}%".format(
+            caption.text, caption.confidence * 100)
+    return output
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):

@@ -29,3 +29,10 @@ def hello():
 def hellob():
     return render_template('upload.html')
 
+@app.route('/success/<name>', methods=['GET', 'POST'])
+def success(name):
+    """
+    Display success
+    """
+    path = os.path.join(app.config['UPLOAD_FOLDER'], '{}.jpg'.format(name))
+    return "https://cvlinebot.azurewebsites.net/uploads/{}".format(path)

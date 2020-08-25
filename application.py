@@ -21,11 +21,11 @@ app.config['UPLOAD_FOLDER'] = ""
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 CATCHE = Cache(app, config={'CACHE_TYPE': 'null'})
 CATCHE.init_app(app)
-with open('key', 'r') as f:
+with open('/home/key', 'r') as f:
     subscription_key = f.read()
 f.close()
 
-with open('endpoint', 'r') as f:
+with open('/home/endpoint', 'r') as f:
     endpoint = f.read()
 f.close()
 

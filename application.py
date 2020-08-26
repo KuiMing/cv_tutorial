@@ -45,7 +45,7 @@ line_bot_api = LineBotApi(line_token)
 handler = WebhookHandler(line_secret)
 
 imgur_config = config['imgur']
-imgur_client = Imgur(config=config)
+imgur_client = Imgur(config=imgur_config)
 
 
 def azure_describe(remote_image_url):

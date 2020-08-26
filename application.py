@@ -10,7 +10,8 @@ import json
 from linebot import (LineBotApi, WebhookHandler)
 from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (MessageEvent, TextMessage, TextSendMessage,
-                            FlexSendMessage, ImageMessage)
+                            FlexSendMessage, ImageMessage, ImageSendMessage)
+from imgur_python import Imgur
 
 
 def allowed_file(filename):
@@ -105,7 +106,9 @@ def handle_content_message(event):
         link = image['response']['data']['link']
         output = azure_describe(link)
         line_bot_api.reply_message(
-            event.reply_token, [TextSendMessage(text=output)])
+            event.reply_token,
+            [TextSendMessage(text=output),
+             ImageSendMessage(link, link)])
 
 
 @app.route('/', methods=['GET', 'POST'])

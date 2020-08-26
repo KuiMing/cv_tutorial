@@ -100,6 +100,7 @@ def handle_content_message(event):
         with open("static/line.jpg", 'wb') as fd:
             for chunk in message_content.iter_content():
                 fd.write(chunk)
+        output = azure_describe('https://cvlinebot.azurewebsites.net/static/line.jpg')
         line_bot_api.reply_message(
             event.reply_token, [
                 TextSendMessage(text='Save content.')

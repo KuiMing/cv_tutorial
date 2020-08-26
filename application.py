@@ -26,26 +26,25 @@ app.config['UPLOAD_FOLDER'] = ""
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 CATCHE = Cache(app, config={'CACHE_TYPE': 'null'})
 CATCHE.init_app(app)
-with open('/home/key', 'r') as f:
-    subscription_key = f.read()
-f.close()
-subscription_key = subscription_key.replace('\n', '')
 
-with open('/home/endpoint', 'r') as f:
-    endpoint = f.read()
+with open('/home/config.json', 'r') as f:
+    config = json.load(f)
 f.close()
-endpoint = endpoint.replace('\n', '')
 
+subscription_key = config['azure']['subscription_key']
+endpoint = config['azure']['endpoint']
 computervision_client = ComputerVisionClient(
     endpoint, CognitiveServicesCredentials(subscription_key))
 
 with open('/home/line_config.json', 'r') as f:
     config = json.load(f)
 f.close()
-line_secret = config['line_secret']
-line_token = config['line_token']
+line_secret = config['line']['line_secret']
+line_token = config['line']['line_token']
 line_bot_api = LineBotApi(line_token)
 handler = WebhookHandler(line_secret)
+
+imgur_config = config['imgur']
 
 
 def azure_describe(remote_image_url):
@@ -88,6 +87,7 @@ def handle_message(event):
     # print(line_bot_api.get_room_member_ids(room_id))
     line_bot_api.reply_message(event.reply_token, message)
 
+
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_content_message(event):
     if isinstance(event.message, ImageMessage):
@@ -100,11 +100,11 @@ def handle_content_message(event):
         with open("static/line.jpg", 'wb') as fd:
             for chunk in message_content.iter_content():
                 fd.write(chunk)
-        output = azure_describe('https://cvlinebot.azurewebsites.net/static/line.jpg')
+        output = azure_describe(
+            'https://cvlinebot.azurewebsites.net/static/line.jpg')
         line_bot_api.reply_message(
-            event.reply_token, [
-                TextSendMessage(text='Save content.')
-            ])
+            event.reply_token, [TextSendMessage(text='Save content.')])
+
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():

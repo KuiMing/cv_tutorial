@@ -80,6 +80,14 @@ def callback():
     return 'OK'
 
 
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    message = TextSendMessage(text=event.message.text)
+    print(event.source.user_id)
+    print(event.source.type)
+    # print(line_bot_api.get_room_member_ids(room_id))
+    line_bot_api.reply_message(event.reply_token, message)
+
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     """

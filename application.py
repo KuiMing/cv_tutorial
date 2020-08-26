@@ -10,7 +10,7 @@ import json
 from linebot import (LineBotApi, WebhookHandler)
 from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (MessageEvent, TextMessage, TextSendMessage,
-                            FlexSendMessage)
+                            FlexSendMessage, ImageMessage)
 
 
 def allowed_file(filename):
@@ -87,6 +87,23 @@ def handle_message(event):
     print(event.source.type)
     # print(line_bot_api.get_room_member_ids(room_id))
     line_bot_api.reply_message(event.reply_token, message)
+
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_content_message(event):
+    if isinstance(event.message, ImageMessage):
+        ext = 'jpg'
+        print('get')
+        print(event.message)
+        print(event.source.user_id)
+        print(event.message.id)
+        message_content = line_bot_api.get_message_content(event.message.id)
+        with open("static/line.jpg", 'wb') as fd:
+            for chunk in message_content.iter_content():
+                fd.write(chunk)
+        line_bot_api.reply_message(
+            event.reply_token, [
+                TextSendMessage(text='Save content.')
+            ])
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():

@@ -6,7 +6,11 @@ from flask import send_from_directory
 from flask_caching import Cache
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from msrest.authentication import CognitiveServicesCredentials
-
+import json
+from linebot import (LineBotApi, WebhookHandler)
+from linebot.exceptions import (InvalidSignatureError)
+from linebot.models import (MessageEvent, TextMessage, TextSendMessage,
+                            FlexSendMessage)
 
 
 def allowed_file(filename):
@@ -15,6 +19,7 @@ def allowed_file(filename):
     """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = ""
@@ -34,9 +39,45 @@ endpoint = endpoint.replace('\n', '')
 computervision_client = ComputerVisionClient(
     endpoint, CognitiveServicesCredentials(subscription_key))
 
+with open('/home/line_config.json', 'r') as f:
+    config = json.load(f)
+f.close()
+line_secret = config['line_secret']
+line_token = config['line_token']
+line_bot_api = LineBotApi(line_token)
+handler = WebhookHandler(line_secret)
+
+
+def azure_describe(remote_image_url):
+    description_results = computervision_client.describe_image(
+        remote_image_url)
+    output = ""
+    for caption in description_results.captions:
+        output += "'{}' with confidence {:.2f}% \n".format(
+            caption.text, caption.confidence * 100)
+    return output
+
+
 @app.route("/hello")
 def hello():
     return "Hello World!!!!!"
+
+
+@app.route("/callback", methods=['POST'])
+def callback():
+    # get X-Line-Signature header value
+    signature = request.headers['X-Line-Signature']
+    body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
+    print(body)
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        print(
+            "Invalid signature. Please check your channel access token/channel secret."
+        )
+        abort(400)
+    return 'OK'
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -55,11 +96,13 @@ def upload_file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             name = str(time.time_ns())
-            path = os.path.join(app.config['UPLOAD_FOLDER'], '{}.jpg'.format(name))
+            path = os.path.join(app.config['UPLOAD_FOLDER'],
+                                '{}.jpg'.format(name))
             file.save(path)
             redirect(url_for('uploaded_file', filename=path))
             return redirect(url_for('success', name=name))
     return render_template('upload.html')
+
 
 @app.route('/success/<name>', methods=['GET', 'POST'])
 def success(name):
@@ -76,6 +119,7 @@ def success(name):
         output += "'{}' with confidence {:.2f}%".format(
             caption.text, caption.confidence * 100)
     return output
+
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -94,5 +138,3 @@ def clear_files():
         for i in file_list:
             if int(i.replace(".jpg", "")) < (time.time_ns() - 60e9):
                 os.remove(i)
-
-

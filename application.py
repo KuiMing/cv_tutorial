@@ -45,6 +45,7 @@ line_bot_api = LineBotApi(line_token)
 handler = WebhookHandler(line_secret)
 
 imgur_config = config['imgur']
+imgur_client = Imgur(config=config)
 
 
 def azure_describe(remote_image_url):
@@ -100,10 +101,11 @@ def handle_content_message(event):
         with open("static/line.jpg", 'wb') as fd:
             for chunk in message_content.iter_content():
                 fd.write(chunk)
-        output = azure_describe(
-            'https://cvlinebot.azurewebsites.net/static/line.jpg')
+        image = imgur_client.image_upload('static/line.jpg', 'first', 'first')
+        link = image['response']['data']['link']
+        output = azure_describe(link)
         line_bot_api.reply_message(
-            event.reply_token, [TextSendMessage(text='Save content.')])
+            event.reply_token, [TextSendMessage(text=output)])
 
 
 @app.route('/', methods=['GET', 'POST'])

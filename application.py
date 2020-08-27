@@ -12,6 +12,7 @@ from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (MessageEvent, TextMessage, TextSendMessage,
                             FlexSendMessage, ImageMessage, ImageSendMessage)
 from imgur_python import Imgur
+from PIL import Image, ImageDraw, ImageFont
 
 
 def allowed_file(filename):
@@ -122,7 +123,6 @@ def handle_message(event):
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_content_message(event):
     if isinstance(event.message, ImageMessage):
-        ext = 'jpg'
         print('get')
         print(event.message)
         print(event.source.user_id)
@@ -186,11 +186,14 @@ def handle_content_message(event):
                             "type": "text",
                             "text": output,
                             "color": "#ffffffcc",
-                            "size": "sm"
+                            "size": "sm",
+                            "wrap": True
                         }],
                         "spacing":
                         "sm"
-                    }]
+                    }],
+                    "height":
+                    "50px"
                 }],
                 "paddingAll":
                 "20px",

@@ -62,7 +62,8 @@ def azure_describe(remote_image_url):
 def azure_object_detection(url):
     img = Image.open('static/line.jpg')
     draw = ImageDraw.Draw(img)
-    fnt = ImageFont.truetype("static/TaipeiSansTCBeta-Regular.ttf", size=int(5e-2 * img.size[1]))
+    fnt = ImageFont.truetype(
+        "static/TaipeiSansTCBeta-Regular.ttf", size=int(5e-2 * img.size[1]))
     object_detection = computervision_client.detect_objects(url)
     if len(object_detection.objects) > 0:
         for obj in object_detection.objects:
@@ -72,9 +73,15 @@ def azure_object_detection(url):
             bot = obj.rectangle.y + obj.rectangle.h
             name = obj.object_property
             confidence = obj.confidence
-            print("{} at location {}, {}, {}, {}".format(name, left, right, top, bot))
-            draw.rectangle([left,top,right,bot], outline=(255,0,0), width=3)
-            draw.text([left, abs(top - 12)],"{} {}".format(name, confidence), fill=(255,0,0), font= fnt)
+            print("{} at location {}, {}, {}, {}".format(
+                name, left, right, top, bot))
+            draw.rectangle(
+                [left, top, right, bot], outline=(255, 0, 0), width=3)
+            draw.text(
+                [left, abs(top - 12)],
+                "{} {}".format(name, confidence),
+                fill=(255, 0, 0),
+                font=fnt)
     img.save('static/result.jpg')
     image = imgur_client.image_upload('static/result.jpg', 'first', 'first')
     link = image['response']['data']['link']
@@ -127,14 +134,77 @@ def handle_content_message(event):
         image = imgur_client.image_upload('static/line.jpg', 'first', 'first')
         link = image['response']['data']['link']
         output = azure_describe(link)
-<<<<<<< HEAD
-=======
         link = azure_object_detection(link)
->>>>>>> 19d2c14... draw rectangle with Pillow
+        bubble = {
+            "type": "bubble",
+            "header": {
+                "type":
+                "box",
+                "layout":
+                "vertical",
+                "contents": [{
+                    "type":
+                    "box",
+                    "layout":
+                    "horizontal",
+                    "contents": [{
+                        "type":
+                        "box",
+                        "layout":
+                        "vertical",
+                        "contents": [{
+                            "type": "image",
+                            "url": link,
+                            "size": "full",
+                            "aspectMode": "cover",
+                            "aspectRatio": "1:1",
+                            "gravity": "center"
+                        }],
+                        "flex":
+                        1
+                    }]
+                }],
+                "paddingAll":
+                "0px"
+            },
+            "body": {
+                "type":
+                "box",
+                "layout":
+                "vertical",
+                "contents": [{
+                    "type":
+                    "box",
+                    "layout":
+                    "vertical",
+                    "contents": [{
+                        "type":
+                        "box",
+                        "layout":
+                        "vertical",
+                        "contents": [{
+                            "type": "text",
+                            "text": output,
+                            "color": "#ffffffcc",
+                            "size": "sm"
+                        }],
+                        "spacing":
+                        "sm"
+                    }]
+                }],
+                "paddingAll":
+                "20px",
+                "backgroundColor":
+                "#464F69"
+            }
+        }
         line_bot_api.reply_message(
-            event.reply_token,
-            [ImageSendMessage(link, link),
-             TextSendMessage(text=output)])
+            event.reply_token, [
+                ImageSendMessage(link, link),
+                TextSendMessage(text=output),
+                FlexSendMessage(alt_text="Report", contents=bubble)
+            ])
+
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():

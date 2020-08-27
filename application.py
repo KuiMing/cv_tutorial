@@ -70,8 +70,11 @@ def azure_object_detection(url):
         top = obj.rectangle.y
         right = obj.rectangle.x + obj.rectangle.w
         bot = obj.rectangle.y + obj.rectangle.h
+        name = obj.object_property
+        confidence = obj.confidence
+        print("{} at location {}, {}, {}, {}".format(name, left, right, top, bot))
         draw.rectangle([left,top,right,bot], outline=(255,0,0), width=3)
-        draw.text([left, abs(top - 12)], obj.object_property, fill=(255,0,0), font= fnt)
+        draw.text([left, abs(top - 12)],"{} {}".format(name, confidence), fill=(255,0,0), font= fnt)
     img.save('static/result.jpg')
     image = imgur_client.image_upload('static/result.jpg', 'first', 'first')
     link = image['response']['data']['link']

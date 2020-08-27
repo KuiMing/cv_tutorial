@@ -38,9 +38,6 @@ endpoint = config['azure']['endpoint']
 computervision_client = ComputerVisionClient(
     endpoint, CognitiveServicesCredentials(subscription_key))
 
-with open('/home/line_config.json', 'r') as f:
-    config = json.load(f)
-f.close()
 line_secret = config['line']['line_secret']
 line_token = config['line']['line_token']
 line_bot_api = LineBotApi(line_token)
@@ -48,7 +45,6 @@ handler = WebhookHandler(line_secret)
 
 imgur_config = config['imgur']
 imgur_client = Imgur(config=imgur_config)
-
 
 def azure_describe(remote_image_url):
     description_results = computervision_client.describe_image(

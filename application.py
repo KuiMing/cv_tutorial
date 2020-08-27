@@ -64,17 +64,17 @@ def azure_object_detection(url):
     draw = ImageDraw.Draw(img)
     fnt = ImageFont.truetype("static/TaipeiSansTCBeta-Regular.ttf", size=int(5e-2 * img.size[1]))
     object_detection = computervision_client.detect_objects(url)
-    for obj in object_detection.objects:
-        print("{} at location {}, {}, {}, {}".format(name, left, right, top, bot))
-        left = obj.rectangle.x
-        top = obj.rectangle.y
-        right = obj.rectangle.x + obj.rectangle.w
-        bot = obj.rectangle.y + obj.rectangle.h
-        name = obj.object_property
-        confidence = obj.confidence
-        print("{} at location {}, {}, {}, {}".format(name, left, right, top, bot))
-        draw.rectangle([left,top,right,bot], outline=(255,0,0), width=3)
-        draw.text([left, abs(top - 12)],"{} {}".format(name, confidence), fill=(255,0,0), font= fnt)
+    if len(object_detection.objects) > 0:
+        for obj in object_detection.objects:
+            left = obj.rectangle.x
+            top = obj.rectangle.y
+            right = obj.rectangle.x + obj.rectangle.w
+            bot = obj.rectangle.y + obj.rectangle.h
+            name = obj.object_property
+            confidence = obj.confidence
+            print("{} at location {}, {}, {}, {}".format(name, left, right, top, bot))
+            draw.rectangle([left,top,right,bot], outline=(255,0,0), width=3)
+            draw.text([left, abs(top - 12)],"{} {}".format(name, confidence), fill=(255,0,0), font= fnt)
     img.save('static/result.jpg')
     image = imgur_client.image_upload('static/result.jpg', 'first', 'first')
     link = image['response']['data']['link']

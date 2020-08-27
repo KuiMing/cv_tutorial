@@ -2,7 +2,7 @@ import os
 import glob
 import time
 from flask import Flask, flash, request, redirect, url_for, render_template
-from flask import send_from_directory
+from flask import send_from_directory, abort
 from flask_caching import Cache
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from msrest.authentication import CognitiveServicesCredentials
@@ -59,6 +59,25 @@ def azure_describe(remote_image_url):
     return output
 
 
+def azure_object_detection(url):
+    img = Image.open('static/line.jpg')
+    draw = ImageDraw.Draw(img)
+    fnt = ImageFont.truetype("static/TaipeiSansTCBeta-Regular.ttf", size=int(5e-2 * img.size[1]))
+    object_detection = computervision_client.detect_objects(url)
+    for obj in object_detection.objects:
+        print("{} at location {}, {}, {}, {}".format(name, left, right, top, bot))
+        left = obj.rectangle.x
+        top = obj.rectangle.y
+        right = obj.rectangle.x + obj.rectangle.w
+        bot = obj.rectangle.y + obj.rectangle.h
+        draw.rectangle([left,top,right,bot], outline=(255,0,0), width=3)
+        draw.text([left, abs(top - 12)], obj.object_property, fill=(255,0,0), font= fnt)
+    img.save('static/result.jpg')
+    image = imgur_client.image_upload('static/result.jpg', 'first', 'first')
+    link = image['response']['data']['link']
+    return link
+
+
 @app.route("/hello")
 def hello():
     return "Hello World!!!!!"
@@ -105,6 +124,10 @@ def handle_content_message(event):
         image = imgur_client.image_upload('static/line.jpg', 'first', 'first')
         link = image['response']['data']['link']
         output = azure_describe(link)
+<<<<<<< HEAD
+=======
+        link = azure_object_detection(link)
+>>>>>>> 19d2c14... draw rectangle with Pillow
         line_bot_api.reply_message(
             event.reply_token,
             [TextSendMessage(text=output),

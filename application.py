@@ -11,6 +11,7 @@ from linebot import (LineBotApi, WebhookHandler)
 from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (MessageEvent, TextMessage, TextSendMessage,
                             FlexSendMessage, ImageMessage, ImageSendMessage)
+# pylint: disable=import-error
 from imgur_python import Imgur
 from PIL import Image, ImageDraw, ImageFont
 
@@ -45,6 +46,7 @@ handler = WebhookHandler(line_secret)
 
 imgur_config = config['imgur']
 imgur_client = Imgur(config=imgur_config)
+
 
 def azure_describe(remote_image_url):
     description_results = computervision_client.describe_image(
@@ -119,7 +121,6 @@ def handle_message(event):
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_content_message(event):
     if isinstance(event.message, ImageMessage):
-        print('get')
         print(event.message)
         print(event.source.user_id)
         print(event.message.id)
@@ -198,11 +199,8 @@ def handle_content_message(event):
             }
         }
         line_bot_api.reply_message(
-            event.reply_token, [
-                ImageSendMessage(link, link),
-                TextSendMessage(text=output),
-                FlexSendMessage(alt_text="Report", contents=bubble)
-            ])
+            event.reply_token,
+            [FlexSendMessage(alt_text="Report", contents=bubble)])
 
 
 @app.route('/', methods=['GET', 'POST'])

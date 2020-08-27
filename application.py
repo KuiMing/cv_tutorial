@@ -133,9 +133,8 @@ def handle_content_message(event):
 >>>>>>> 19d2c14... draw rectangle with Pillow
         line_bot_api.reply_message(
             event.reply_token,
-            [TextSendMessage(text=output),
-             ImageSendMessage(link, link)])
-
+            [ImageSendMessage(link, link),
+             TextSendMessage(text=output)])
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():

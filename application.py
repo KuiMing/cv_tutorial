@@ -11,7 +11,6 @@ from linebot import (LineBotApi, WebhookHandler)
 from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (MessageEvent, TextMessage, TextSendMessage,
                             FlexSendMessage, ImageMessage, ImageSendMessage)
-# pylint: disable=import-error
 from imgur_python import Imgur
 from PIL import Image, ImageDraw, ImageFont
 
@@ -58,8 +57,8 @@ def azure_describe(remote_image_url):
     return output
 
 
-def azure_object_detection(url):
-    img = Image.open('static/line.jpg')
+def azure_object_detection(url, filename):
+    img = Image.open(filename)
     draw = ImageDraw.Draw(img)
     fnt = ImageFont.truetype(
         "static/TaipeiSansTCBeta-Regular.ttf", size=int(5e-2 * img.size[1]))
@@ -81,9 +80,10 @@ def azure_object_detection(url):
                 "{} {}".format(name, confidence),
                 fill=(255, 0, 0),
                 font=fnt)
-    img.save('static/result.jpg')
-    image = imgur_client.image_upload('static/result.jpg', 'first', 'first')
+    img.save(filename)
+    image = imgur_client.image_upload(filename, 'first', 'first')
     link = image['response']['data']['link']
+    os.remove(filename)
     return link
 
 
@@ -124,14 +124,15 @@ def handle_content_message(event):
         print(event.message)
         print(event.source.user_id)
         print(event.message.id)
+        filename = "{}.jpg".format(event.message.id)
         message_content = line_bot_api.get_message_content(event.message.id)
-        with open("static/line.jpg", 'wb') as fd:
+        with open(filename, 'wb') as fd:
             for chunk in message_content.iter_content():
                 fd.write(chunk)
-        image = imgur_client.image_upload('static/line.jpg', 'first', 'first')
+        image = imgur_client.image_upload(filename, 'first', 'first')
         link = image['response']['data']['link']
         output = azure_describe(link)
-        link = azure_object_detection(link)
+        link = azure_object_detection(link, filename)
         bubble = {
             "type": "bubble",
             "header": {

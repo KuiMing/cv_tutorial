@@ -121,72 +121,13 @@ def handle_content_message(event):
         link = image['response']['data']['link']
         output = azure_describe(link)
         link = azure_object_detection(link, filename)
-        bubble = {
-            "type": "bubble",
-            "header": {
-                "type":
-                "box",
-                "layout":
-                "vertical",
-                "contents": [{
-                    "type":
-                    "box",
-                    "layout":
-                    "horizontal",
-                    "contents": [{
-                        "type":
-                        "box",
-                        "layout":
-                        "vertical",
-                        "contents": [{
-                            "type": "image",
-                            "url": link,
-                            "size": "full",
-                            "aspectMode": "cover",
-                            "aspectRatio": "1:1",
-                            "gravity": "center"
-                        }],
-                        "flex":
-                        1
-                    }]
-                }],
-                "paddingAll":
-                "0px"
-            },
-            "body": {
-                "type":
-                "box",
-                "layout":
-                "vertical",
-                "contents": [{
-                    "type":
-                    "box",
-                    "layout":
-                    "vertical",
-                    "contents": [{
-                        "type":
-                        "box",
-                        "layout":
-                        "vertical",
-                        "contents": [{
-                            "type": "text",
-                            "text": output,
-                            "color": "#ffffffcc",
-                            "size": "sm",
-                            "wrap": True
-                        }],
-                        "spacing":
-                        "sm"
-                    }],
-                    "height":
-                    "50px"
-                }],
-                "paddingAll":
-                "20px",
-                "backgroundColor":
-                "#464F69"
-            }
-        }
+        with open('templates/detect_result.json', 'r') as f:
+            bubble = json.load(f)
+        f.close()
+        bubble['body']['contents'][0]['contents'][0]['contents'][0][
+            'text'] = output
+        bubble['header']['contents'][0]['contents'][0]['contents'][0][
+            'url'] = link
         line_bot_api.reply_message(
             event.reply_token,
             [FlexSendMessage(alt_text="Report", contents=bubble)])

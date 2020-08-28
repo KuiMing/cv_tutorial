@@ -14,23 +14,36 @@ from imgur_python import Imgur
 from PIL import Image, ImageDraw, ImageFont
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = ""
 
-with open('/home/config.json', 'r') as f:
-    CONFIG = json.load(f)
-f.close()
+try:
+    with open('/home/config.json', 'r') as f:
+        CONFIG = json.load(f)
+    f.close()
 
-SUBSCRIPTION_KEY = CONFIG['azure']['subscription_key']
-ENDPOINT = CONFIG['azure']['endpoint']
+    SUBSCRIPTION_KEY = CONFIG['azure']['subscription_key']
+    ENDPOINT = CONFIG['azure']['endpoint']
+
+    LINE_SECRET = CONFIG['line']['line_secret']
+    LINE_TOKEN = CONFIG['line']['line_token']
+
+    IMGUR_CONFIG = CONFIG['imgur']
+
+except FileNotFoundError:
+    SUBSCRIPTION_KEY = os.getenv('SUBSCRIPTION_KEY')
+    ENDPOINT = os.getenv('ENDPOINT')
+    LINE_SECRET = os.getenv('LINE_SECRET')
+    LINE_TOKEN = os.getenv('LINE_TOKEN')
+    IMGUR_CONFIG = {
+        "client_id": os.getenv('IMGUR_ID'),
+        "client_secret": os.getenv('IMGUR_SECRET'),
+        "access_token": os.getenv('IMGUR_ACCESS'),
+        "refresh_token": os.getenv('IMGUR_REFRESH')
+    }
+
 CV_CLIENT = ComputerVisionClient(
     ENDPOINT, CognitiveServicesCredentials(SUBSCRIPTION_KEY))
-
-LINE_SECRET = CONFIG['line']['line_secret']
-LINE_TOKEN = CONFIG['line']['line_token']
 LINE_BOT = LineBotApi(LINE_TOKEN)
 HANDLER = WebhookHandler(LINE_SECRET)
-
-IMGUR_CONFIG = CONFIG['imgur']
 IMGUR_CLIENT = Imgur(config=IMGUR_CONFIG)
 
 

@@ -35,6 +35,8 @@ try:
 except FileNotFoundError:
     SUBSCRIPTION_KEY = os.getenv('SUBSCRIPTION_KEY')
     ENDPOINT = os.getenv('ENDPOINT')
+    FACE_KEY = os.getenv('FACE_KEY')
+    FACE_END = os.getenv('FACE_END')
     LINE_SECRET = os.getenv('LINE_SECRET')
     LINE_TOKEN = os.getenv('LINE_TOKEN')
     IMGUR_CONFIG = {

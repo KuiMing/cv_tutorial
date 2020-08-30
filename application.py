@@ -134,40 +134,6 @@ class AzureImageOutput():
         return link
 
 
-def azure_object_detection(url, filename):
-    """
-    Output azure image object detection result
-    """
-    img = Image.open(filename)
-    draw = ImageDraw.Draw(img)
-    fnt = ImageFont.truetype(
-        "static/TaipeiSansTCBeta-Regular.ttf", size=int(5e-2 * img.size[1]))
-    object_detection = CV_CLIENT.detect_objects(url)
-    if len(object_detection.objects) > 0:
-        for obj in object_detection.objects:
-            left = obj.rectangle.x
-            top = obj.rectangle.y
-            right = obj.rectangle.x + obj.rectangle.w
-            bot = obj.rectangle.y + obj.rectangle.h
-            name = obj.object_property
-            confidence = obj.confidence
-            print("{} at location {}, {}, {}, {}".format(
-                name, left, right, top, bot))
-            draw.rectangle(
-                [left, top, right, bot], outline=(255, 0, 0), width=3)
-            draw.text(
-                [left, abs(top - 12)],
-                "{} {}".format(name, confidence),
-                fill=(255, 0, 0),
-                font=fnt)
-
-    img.save(filename)
-    image = IMGUR_CLIENT.image_upload(filename, 'first', 'first')
-    link = image['response']['data']['link']
-    os.remove(filename)
-    return link
-
-
 @app.route("/")
 def hello():
     "hello world"

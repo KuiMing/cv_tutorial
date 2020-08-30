@@ -3,6 +3,7 @@ Object detection and image description on LINE bot
 """
 import os
 import json
+import requests
 from flask import Flask, request, abort
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from msrest.authentication import CognitiveServicesCredentials
@@ -22,6 +23,9 @@ try:
 
     SUBSCRIPTION_KEY = CONFIG['azure']['subscription_key']
     ENDPOINT = CONFIG['azure']['endpoint']
+
+    FACE_KEY = CONFIG['azure']['face_key']
+    FACE_END = CONFIG['azure']['face_end']
 
     LINE_SECRET = CONFIG['line']['line_secret']
     LINE_TOKEN = CONFIG['line']['line_token']
@@ -59,14 +63,85 @@ def azure_describe(url):
     return output
 
 
+class AzureImageOutput():
+    def __init__(self, url, filename):
+        self.url = url
+        self.filename = filename
+        self.img = Image.open(filename)
+        self.draw = ImageDraw.Draw(self.img)
+        self.fnt = ImageFont.truetype(
+            "static/TaipeiSansTCBeta-Regular.ttf",
+            size=int(5e-2 * self.img.size[1]))
+
+    def azure_object_detection(self):
+        object_detection = CV_CLIENT.detect_objects(self.url)
+        if len(object_detection.objects) > 0:
+            for obj in object_detection.objects:
+                left = obj.rectangle.x
+                top = obj.rectangle.y
+                right = obj.rectangle.x + obj.rectangle.w
+                bot = obj.rectangle.y + obj.rectangle.h
+                name = obj.object_property
+                confidence = obj.confidence
+                print("{} at location {}, {}, {}, {}".format(
+                    name, left, right, top, bot))
+                self.draw.rectangle(
+                    [left, top, right, bot], outline=(255, 0, 0), width=3)
+                self.draw.text(
+                    [left, abs(top - 12)],
+                    "{} {}".format(name, confidence),
+                    fill=(255, 0, 0),
+                    font=self.fnt)
+
+    def azure_face_detection(self):
+        face_api_url = '{}face/v1.0/detect'.format(FACE_END)
+        headers = {'Ocp-Apim-Subscription-Key': FACE_KEY}
+        params = {
+            'returnFaceId': 'true',
+            'returnFaceLandmarks': 'false',
+            'returnFaceAttributes': 'emotion',
+        }
+        response = requests.post(
+            face_api_url,
+            params=params,
+            headers=headers,
+            json={"url": self.url})
+        if len(response.json()) > 0:
+            for obj in response.json():
+                left = obj['faceRectangle']['left']
+                top = obj['faceRectangle']['top']
+                right = obj['faceRectangle']['left'] + obj['faceRectangle']['width']
+                bot = obj['faceRectangle']['top'] + obj['faceRectangle']['height']
+                emotion = max(
+                    obj["faceAttributes"]['emotion'],
+                    key=obj["faceAttributes"]['emotion'].get)
+                confidence = max(obj["faceAttributes"]['emotion'].values())
+                self.draw.rectangle(
+                    [left, top, right, bot], outline=(255, 0, 0), width=3)
+                self.draw.text(
+                    [left, abs(top - 12)],
+                    "{} {}".format(emotion, confidence),
+                    fill=(255, 0, 0),
+                    font=self.fnt)
+
+    def __call__(self):
+        self.azure_object_detection()
+        self.azure_face_detection()
+        self.img.save(self.filename)
+        image = IMGUR_CLIENT.image_upload(self.filename, 'first', 'first')
+        link = image['response']['data']['link']
+        os.remove(self.filename)
+        return link
+
+
 def azure_object_detection(url, filename):
     """
     Output azure image object detection result
     """
     img = Image.open(filename)
     draw = ImageDraw.Draw(img)
-    fnt = ImageFont.truetype("static/TaipeiSansTCBeta-Regular.ttf",
-                             size=int(5e-2 * img.size[1]))
+    fnt = ImageFont.truetype(
+        "static/TaipeiSansTCBeta-Regular.ttf", size=int(5e-2 * img.size[1]))
     object_detection = CV_CLIENT.detect_objects(url)
     if len(object_detection.objects) > 0:
         for obj in object_detection.objects:
@@ -78,13 +153,14 @@ def azure_object_detection(url, filename):
             confidence = obj.confidence
             print("{} at location {}, {}, {}, {}".format(
                 name, left, right, top, bot))
-            draw.rectangle([left, top, right, bot],
-                           outline=(255, 0, 0),
-                           width=3)
-            draw.text([left, abs(top - 12)],
-                      "{} {}".format(name, confidence),
-                      fill=(255, 0, 0),
-                      font=fnt)
+            draw.rectangle(
+                [left, top, right, bot], outline=(255, 0, 0), width=3)
+            draw.text(
+                [left, abs(top - 12)],
+                "{} {}".format(name, confidence),
+                fill=(255, 0, 0),
+                font=fnt)
+
     img.save(filename)
     image = IMGUR_CLIENT.image_upload(filename, 'first', 'first')
     link = image['response']['data']['link']

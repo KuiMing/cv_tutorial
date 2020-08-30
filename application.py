@@ -224,7 +224,8 @@ def handle_content_message(event):
         image = IMGUR_CLIENT.image_upload(filename, 'first', 'first')
         link = image['response']['data']['link']
         output = azure_describe(link)
-        link = azure_object_detection(link, filename)
+        az_output = AzureImageOutput(link, filename)
+        link = az_output()
         with open('templates/detect_result.json', 'r') as f_r:
             bubble = json.load(f_r)
         f_r.close()

@@ -28,7 +28,9 @@
     },
     "azure":{
             "subscription_key":...,
-            "endpoint":"https://<your name of Azure Cognitive Services>.cognitiveservices.azure.com/"
+            "endpoint":"https://<your name of Azure Cognitive Services>.cognitiveservices.azure.com/",
+            "face_key":...,
+            "face_end":"https://<your name of Azure Face Detection>.cognitiveservices.azure.com/"
     },
     "imgur":{
             "client_id":...,
@@ -77,6 +79,8 @@ heroku config:set IMGUR_ID=...
 heroku config:set IMGUR_SECRET=...
 heroku config:set IMGUR_ACCESS=...
 heroku config:set IMGUR_REFRESH=...
+heroku config:set FACE_KEY=...
+heroku config:set FACE_END=...
 ```
 
 6. `git push herku master`

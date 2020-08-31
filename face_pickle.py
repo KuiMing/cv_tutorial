@@ -1,3 +1,7 @@
+"""
+1. Encode face images which are in face_data folder.
+2. Save encoding data into face_data.pickle.
+"""
 import glob
 import pickle
 import face_recognition
@@ -6,6 +10,9 @@ from PIL import Image
 
 
 def main():
+    """
+    Encode face images and save picle file
+    """
     filenames = glob.glob('face_data/*/*')
 
     face_data_names = []
@@ -28,9 +35,9 @@ def main():
         else:
             print("No face detected in {}".format(img_path))
     face_data = [face_data_names, face_data_encodings]
-    with open("face_data.pickle", "wb") as f:
-        pickle.dump(face_data, f)
-
+    with open("face_data.pickle", "wb") as f_w:
+        pickle.dump(face_data, f_w)
+    f_w.close()
 
 if __name__ == '__main__':
     main()

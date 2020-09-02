@@ -14,6 +14,7 @@ names = []
 
 
 def recognize_face(frame, tolerance):
+
     shrink = 0.25
     small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
     face_locations = face_recognition.face_locations(small_frame)
@@ -37,23 +38,28 @@ def recognize_face(frame, tolerance):
         trackers.append(track)
         names.append(name)
 
-        cv2.rectangle(frame,
-                      pt1=(left, top),
-                      pt2=(right, bottom),
-                      color=(0, 0, 255),
-                      thickness=2)
-        cv2.rectangle(frame,
-                      pt1=(left, bottom - 35),
-                      pt2=(right, bottom),
-                      color=(0, 0, 255),
-                      thickness=cv2.FILLED)
-        cv2.putText(frame,
-                    text=recognition,
-                    org=(left + 6, bottom - 6),
-                    fontFace=cv2.FONT_HERSHEY_DUPLEX,
-                    fontScale=1.0,
-                    color=(255, 255, 255),
-                    thickness=1)
+        label_face(frame, left, top, right, bottom, name)
+
+
+def label_face(frame, left, top, right, bottom, name):
+    cv2.rectangle(frame,
+                  pt1=(left, top),
+                  pt2=(right, bottom),
+                  color=(0, 0, 255),
+                  thickness=2)
+    cv2.rectangle(frame,
+                  pt1=(left, bottom - 35),
+                  pt2=(right, bottom),
+                  color=(0, 0, 255),
+                  thickness=cv2.FILLED)
+    cv2.putText(frame,
+                text=name,
+                org=(left + 6, bottom - 6),
+                fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                fontScale=1.0,
+                color=(255, 255, 255),
+                thickness=1)
+
 
 
 
@@ -79,8 +85,14 @@ def show_face():
                 now = time.time()
                 fps_info = "fps: {}".format(str(int(fps)).zfill(2))
                 shrink = 0.25
+
+            if counter % 10 == 1:
                 small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
                 face_locations = face_recognition.face_locations(small_frame)
+
+            if len(face_locations) == 0:
+                trackers.clear()
+                names.clear()
 
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
             info = ", ".join([fps_info, tolerance_info])
@@ -91,35 +103,19 @@ def show_face():
                         fontScale=1e-3 * height,
                         color=(0, 0, 255),
                         thickness=thick)
+
             if len(trackers) != len(face_locations):
                 recognize_face(frame, tolerance)
+                print('recalculate')
             else:
                 for (track, name) in zip(trackers, names):
                     track.update(frame)
                     pos = track.get_position()
-                    # unpack the position object
                     left = int(pos.left())
                     top = int(pos.top())
                     right = int(pos.right())
                     bottom = int(pos.bottom())
-                    # draw the bounding box from the correlation object tracker
-                    cv2.rectangle(frame,
-                                  pt1=(left, top),
-                                  pt2=(right, bottom),
-                                  color=(0, 0, 255),
-                                  thickness=2)
-                    cv2.rectangle(frame,
-                                  pt1=(left, bottom - 35),
-                                  pt2=(right, bottom),
-                                  color=(0, 0, 255),
-                                  thickness=cv2.FILLED)
-                    cv2.putText(frame,
-                                text=name,
-                                org=(left + 6, bottom - 6),
-                                fontFace=cv2.FONT_HERSHEY_DUPLEX,
-                                fontScale=1.0,
-                                color=(255, 255, 255),
-                                thickness=1)
+                    label_face(frame, left, top, right, bottom, name)
             cv2.imshow('track face', frame)
 
         keyboard = cv2.waitKey(1)

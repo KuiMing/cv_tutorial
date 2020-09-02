@@ -13,6 +13,7 @@ TRACKERS = []
 # NAMES = []
 LOCATIONS = []
 
+
 class DlibCorrelationTracker():
     def __init__(self, name, threshold):
         self._tracker = dlib.correlation_tracker()
@@ -35,6 +36,7 @@ class DlibCorrelationTracker():
         if confidence > self.threshold:
             label_face(frame, left, top, right, bottom, self._name)
 
+
 def recognize_face(frame, tolerance):
 
     shrink = 0.25
@@ -44,8 +46,7 @@ def recognize_face(frame, tolerance):
                                                      face_locations)
     for location, face_encoding in zip(face_locations, face_encodings):
         top, right, bottom, left = [i * 4 for i in location]
-        distances = face_recognition.face_distance(ENCODINGS,
-                                                    face_encoding)
+        distances = face_recognition.face_distance(ENCODINGS, face_encoding)
         if min(distances) < tolerance:
             name = NAMES[distances.argmin()]
         else:
@@ -53,7 +54,8 @@ def recognize_face(frame, tolerance):
         track = DlibCorrelationTracker(name, 10)
         track.init((top, right, bottom, left), frame)
         TRACKERS.append(track)
-        
+
+
 def label_face(frame, left, top, right, bottom, name):
     cv2.rectangle(frame,
                   pt1=(left, top),
@@ -80,7 +82,7 @@ def show_face():
     mirror = True
     now = time.time()
     counter = 0
-
+    miss = 0
     while True:
         ret_val, frame = cam.read()
         if mirror:
@@ -97,12 +99,15 @@ def show_face():
                 fps_info = "fps: {}".format(str(int(fps)).zfill(2))
                 shrink = 0.25
 
-            if counter % 5 == 1:
+            if counter % 15 == 1:
                 small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
                 face_locations = face_recognition.face_locations(small_frame)
+                if len(face_locations) == 0:
+                    miss += 1
 
-            if len(face_locations) == 0:
+            if (len(face_locations) == 0) and (miss >= 10):
                 TRACKERS.clear()
+                miss = 0
 
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
             info = ", ".join([fps_info, tolerance_info])
@@ -113,7 +118,7 @@ def show_face():
                         fontScale=1e-3 * height,
                         color=(0, 0, 255),
                         thickness=thick)
-            if len(TRACKERS) != len(face_locations):
+            if (len(TRACKERS) == 0) and (len(face_locations) > 0) :
                 recognize_face(frame, tolerance)
                 print('recalculate')
             else:

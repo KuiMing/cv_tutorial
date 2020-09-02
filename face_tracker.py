@@ -2,11 +2,15 @@ import time
 import pickle
 import cv2
 import face_recognition
+import dlib
 
 # pylint: disable=maybe-no-member
 with open("face_data.pickle", "rb") as f_r:
     NAMES, ENCODINGS = pickle.load(f_r)
 f_r.close()
+
+trackers = []
+names = []
 
 
 def recognize_face(frame, tolerance):
@@ -26,6 +30,13 @@ def recognize_face(frame, tolerance):
             name = "Unknown"
         recognition = "{name} {dist:.2f}".format(name=name,
                                                  dist=min(distances))
+        # if tracker is None:
+        track = dlib.correlation_tracker()
+        rect = dlib.rectangle(left, top, right, bottom)
+        track.start_track(frame, rect)
+        trackers.append(track)
+        names.append(name)
+
         cv2.rectangle(frame,
                       pt1=(left, top),
                       pt2=(right, bottom),
@@ -45,12 +56,14 @@ def recognize_face(frame, tolerance):
                     thickness=1)
 
 
+
 def show_face():
     cam = cv2.VideoCapture(0)
     tolerance = 0.5
     mirror = True
     now = time.time()
     counter = 0
+
     while True:
         ret_val, frame = cam.read()
         if mirror:
@@ -65,6 +78,9 @@ def show_face():
                 fps = 5 / (time.time() - now)
                 now = time.time()
                 fps_info = "fps: {}".format(str(int(fps)).zfill(2))
+                shrink = 0.25
+                small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
+                face_locations = face_recognition.face_locations(small_frame)
 
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
             info = ", ".join([fps_info, tolerance_info])
@@ -75,8 +91,36 @@ def show_face():
                         fontScale=1e-3 * height,
                         color=(0, 0, 255),
                         thickness=thick)
-            recognize_face(frame, tolerance)
-            cv2.imshow('web stream', frame)
+            if len(trackers) != len(face_locations):
+                recognize_face(frame, tolerance)
+            else:
+                for (track, name) in zip(trackers, names):
+                    track.update(frame)
+                    pos = track.get_position()
+                    # unpack the position object
+                    left = int(pos.left())
+                    top = int(pos.top())
+                    right = int(pos.right())
+                    bottom = int(pos.bottom())
+                    # draw the bounding box from the correlation object tracker
+                    cv2.rectangle(frame,
+                                  pt1=(left, top),
+                                  pt2=(right, bottom),
+                                  color=(0, 0, 255),
+                                  thickness=2)
+                    cv2.rectangle(frame,
+                                  pt1=(left, bottom - 35),
+                                  pt2=(right, bottom),
+                                  color=(0, 0, 255),
+                                  thickness=cv2.FILLED)
+                    cv2.putText(frame,
+                                text=name,
+                                org=(left + 6, bottom - 6),
+                                fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                fontScale=1.0,
+                                color=(255, 255, 255),
+                                thickness=1)
+            cv2.imshow('track face', frame)
 
         keyboard = cv2.waitKey(1)
         # esc to quit

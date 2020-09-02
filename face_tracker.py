@@ -14,9 +14,10 @@ TRACKERS = []
 LOCATIONS = []
 
 class DlibCorrelationTracker():
-    def __init__(self, name):
+    def __init__(self, name, threshold):
         self._tracker = dlib.correlation_tracker()
         self._name = name
+        self.threshold = threshold
 
     def init(self, location, frame):
         top, right, bottom, left = location
@@ -25,13 +26,14 @@ class DlibCorrelationTracker():
         label_face(frame, left, top, right, bottom, self._name)
 
     def update(self, frame):
-        self._tracker.update(frame)
+        confidence = self._tracker.update(frame)
         pos = self._tracker.get_position()
         left = int(pos.left())
         top = int(pos.top())
         right = int(pos.right())
         bottom = int(pos.bottom())
-        label_face(frame, left, top, right, bottom, self._name)
+        if confidence > self.threshold:
+            label_face(frame, left, top, right, bottom, self._name)
 
 def recognize_face(frame, tolerance):
 
@@ -40,37 +42,18 @@ def recognize_face(frame, tolerance):
     face_locations = face_recognition.face_locations(small_frame)
     face_encodings = face_recognition.face_encodings(small_frame,
                                                      face_locations)
-    # if len(TRACKERS) != len(face_locations):
     for location, face_encoding in zip(face_locations, face_encodings):
         top, right, bottom, left = [i * 4 for i in location]
-        # LOCATIONS.append((top, right, bottom, left))
         distances = face_recognition.face_distance(ENCODINGS,
                                                     face_encoding)
         if min(distances) < tolerance:
             name = NAMES[distances.argmin()]
         else:
             name = "Unknown"
-        # NAMES.append(name)
-
-        track = DlibCorrelationTracker(name)
+        track = DlibCorrelationTracker(name, 10)
         track.init((top, right, bottom, left), frame)
-        # rect = dlib.rectangle(left, top, right, bottom)
-        # track.start_track(frame, rect)
         TRACKERS.append(track)
-        # label_face(frame, left, top, right, bottom, name)
-    # else:
-    #     for track in TRACKERS:
-    #         track.update(frame)
-        # for (track, name) in zip(TRACKERS, NAMES):
-        #     track.update(frame)
-        #     pos = track.get_position()
-        #     left = int(pos.left())
-        #     top = int(pos.top())
-        #     right = int(pos.right())
-        #     bottom = int(pos.bottom())
-        #     label_face(frame, left, top, right, bottom, name)
-
-
+        
 def label_face(frame, left, top, right, bottom, name):
     cv2.rectangle(frame,
                   pt1=(left, top),
@@ -120,7 +103,6 @@ def show_face():
 
             if len(face_locations) == 0:
                 TRACKERS.clear()
-                # NAMES.clear()
 
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
             info = ", ".join([fps_info, tolerance_info])
@@ -137,14 +119,6 @@ def show_face():
             else:
                 for track in TRACKERS:
                     track.update(frame)
-            #     for (track, name) in zip(TRACKERS, NAMES):
-            #         track.update(frame)
-            #         pos = track.get_position()
-            #         left = int(pos.left())
-            #         top = int(pos.top())
-            #         right = int(pos.right())
-            #         bottom = int(pos.bottom())
-            #         label_face(frame, left, top, right, bottom, name)
             cv2.imshow('track face', frame)
 
         keyboard = cv2.waitKey(1)

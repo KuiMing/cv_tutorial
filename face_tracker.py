@@ -37,12 +37,8 @@ class DlibCorrelationTracker():
 
 
 def recognize_track_face(frame, tolerance):
-
     shrink = 0.25
-    small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
-    face_locations = face_recognition.face_locations(small_frame)
-    face_encodings = face_recognition.face_encodings(small_frame,
-                                                     face_locations)
+    face_locations, face_encodings = detect_face(frame, shrink)
     for location, face_encoding in zip(face_locations, face_encodings):
         top, right, bottom, left = [int(i / shrink) for i in location]
         distances = face_recognition.face_distance(ENCODINGS, face_encoding)
@@ -54,13 +50,16 @@ def recognize_track_face(frame, tolerance):
         track.init((top, right, bottom, left), frame)
         TRACKERS.append(track)
 
-def recognize_face(frame, tolerance):
-
-    shrink = 0.25
+def detect_face(frame, shrink):
     small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
     face_locations = face_recognition.face_locations(small_frame)
     face_encodings = face_recognition.face_encodings(small_frame,
                                                      face_locations)
+    return face_locations, face_encodings
+
+def recognize_face(frame, tolerance):
+    shrink = 0.25
+    face_locations, face_encodings = detect_face(frame, shrink)
     for location, face_encoding in zip(face_locations, face_encodings):
         top, right, bottom, left = [int(i / shrink) for i in location]
         distances = face_recognition.face_distance(ENCODINGS, face_encoding)

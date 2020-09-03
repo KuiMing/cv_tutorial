@@ -10,7 +10,6 @@ with open("face_data.pickle", "rb") as f_r:
 f_r.close()
 
 TRACKERS = []
-# NAMES = []
 LOCATIONS = []
 
 
@@ -37,7 +36,7 @@ class DlibCorrelationTracker():
             label_face(frame, left, top, right, bottom, self._name)
 
 
-def recognize_face(frame, tolerance):
+def recognize_track_face(frame, tolerance):
 
     shrink = 0.25
     small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
@@ -45,7 +44,7 @@ def recognize_face(frame, tolerance):
     face_encodings = face_recognition.face_encodings(small_frame,
                                                      face_locations)
     for location, face_encoding in zip(face_locations, face_encodings):
-        top, right, bottom, left = [i * 4 for i in location]
+        top, right, bottom, left = [int(i / shrink) for i in location]
         distances = face_recognition.face_distance(ENCODINGS, face_encoding)
         if min(distances) < tolerance:
             name = NAMES[distances.argmin()]
@@ -55,6 +54,21 @@ def recognize_face(frame, tolerance):
         track.init((top, right, bottom, left), frame)
         TRACKERS.append(track)
 
+def recognize_face(frame, tolerance):
+
+    shrink = 0.25
+    small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
+    face_locations = face_recognition.face_locations(small_frame)
+    face_encodings = face_recognition.face_encodings(small_frame,
+                                                     face_locations)
+    for location, face_encoding in zip(face_locations, face_encodings):
+        top, right, bottom, left = [int(i / shrink) for i in location]
+        distances = face_recognition.face_distance(ENCODINGS, face_encoding)
+        if min(distances) < tolerance:
+            name = NAMES[distances.argmin()]
+        else:
+            name = "Unknown"
+        label_face(frame, left, top, right, bottom, name)
 
 def label_face(frame, left, top, right, bottom, name):
     cv2.rectangle(frame,
@@ -83,6 +97,7 @@ def show_face():
     now = time.time()
     counter = 0
     miss = 0
+    tracking = True
     while True:
         ret_val, frame = cam.read()
         if mirror:
@@ -110,7 +125,8 @@ def show_face():
                 miss = 0
 
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
-            info = ", ".join([fps_info, tolerance_info])
+            tracking_info = "Tracker: {}".format(['off', 'on'][tracking])
+            info = ", ".join([fps_info, tolerance_info, tracking_info])
             cv2.putText(frame,
                         text=info,
                         org=(10, 20),
@@ -118,12 +134,15 @@ def show_face():
                         fontScale=1e-3 * height,
                         color=(0, 0, 255),
                         thickness=thick)
-            if (len(TRACKERS) == 0) and (len(face_locations) > 0) :
-                recognize_face(frame, tolerance)
-                print('recalculate')
+            if tracking:
+                if (len(TRACKERS) == 0) and (len(face_locations) > 0):
+                    recognize_track_face(frame, tolerance)
+                    print('recalculate')
+                else:
+                    for track in TRACKERS:
+                        track.update(frame)
             else:
-                for track in TRACKERS:
-                    track.update(frame)
+                recognize_face(frame, tolerance)
             cv2.imshow('track face', frame)
 
         keyboard = cv2.waitKey(1)
@@ -133,6 +152,9 @@ def show_face():
         # press m to flip frame
         if chr(keyboard & 255) == 'm':
             mirror = not mirror
+        # switch tracker
+        if chr(keyboard & 255) == 't':
+            tracking = not tracking
 
     cv2.destroyAllWindows()
 

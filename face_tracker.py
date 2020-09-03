@@ -146,12 +146,21 @@ def show_face():
             if counter % 15 == 1:
                 small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
                 face_locations = face_recognition.face_locations(small_frame)
-                if len(face_locations) == 0:
+                if len(face_locations) != len(TRACKERS):
                     miss += 1
 
-            if (len(face_locations) == 0) and (miss >= 10):
+            if (len(face_locations) != len(TRACKERS)) and (miss >= 10):
                 TRACKERS.clear()
                 miss = 0
+
+            if tracking:
+                if (len(TRACKERS) == 0) and (len(face_locations) > 0):
+                    recognize_track_face(frame, tolerance, tracking)
+                else:
+                    for track in TRACKERS:
+                        track.update(frame)
+            else:
+                recognize_face(frame, tolerance)
 
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
             tracking_info = "Tracker: {}".format(tracking)
@@ -165,15 +174,6 @@ def show_face():
                 color=(0, 0, 255),
                 thickness=thick,
             )
-            if tracking:
-                if (len(TRACKERS) == 0) and (len(face_locations) > 0):
-                    recognize_track_face(frame, tolerance, tracking)
-                    print("recalculate")
-                else:
-                    for track in TRACKERS:
-                        track.update(frame)
-            else:
-                recognize_face(frame, tolerance)
             cv2.imshow("track face", frame)
 
         keyboard = cv2.waitKey(1)

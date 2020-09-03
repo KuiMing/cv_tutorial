@@ -57,7 +57,7 @@ class OpencvCSRTTracker:
             label_face(frame, left, top, right, bottom, self._name)
 
 
-def recognize_track_face(frame, tolerance):
+def recognize_track_face(frame, tolerance, tracking):
     shrink = 0.25
     face_locations, face_encodings = detect_face(frame, shrink)
     for location, face_encoding in zip(face_locations, face_encodings):
@@ -67,8 +67,10 @@ def recognize_track_face(frame, tolerance):
             name = NAMES[distances.argmin()]
         else:
             name = "Unknown"
-        # track = DlibCorrelationTracker(name, 10)
-        track = OpencvCSRTTracker(name)
+        if tracking == "dlib":
+            track = DlibCorrelationTracker(name, 10)
+        else:
+            track = OpencvCSRTTracker(name)
         track.init((top, right, bottom, left), frame)
         TRACKERS.append(track)
 
@@ -122,7 +124,9 @@ def show_face():
     now = time.time()
     counter = 0
     miss = 0
-    tracking = True
+    tracking_list = ["dlib", "csrt", False]
+    switch = 0
+    tracking = "dlib"
     while True:
         ret_val, frame = cam.read()
         if mirror:
@@ -150,7 +154,7 @@ def show_face():
                 miss = 0
 
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
-            tracking_info = "Tracker: {}".format(["off", "on"][tracking])
+            tracking_info = "Tracker: {}".format(tracking)
             info = ", ".join([fps_info, tolerance_info, tracking_info])
             cv2.putText(
                 frame,
@@ -163,7 +167,7 @@ def show_face():
             )
             if tracking:
                 if (len(TRACKERS) == 0) and (len(face_locations) > 0):
-                    recognize_track_face(frame, tolerance)
+                    recognize_track_face(frame, tolerance, tracking)
                     print("recalculate")
                 else:
                     for track in TRACKERS:
@@ -181,7 +185,10 @@ def show_face():
             mirror = not mirror
         # switch tracker
         if chr(keyboard & 255) == "t":
-            tracking = not tracking
+            TRACKERS.clear()
+            switch += 1
+            switch %= 3
+            tracking = tracking_list[switch]
 
     cv2.destroyAllWindows()
 

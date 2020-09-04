@@ -10,7 +10,6 @@ with open("face_data.pickle", "rb") as f_r:
 f_r.close()
 
 TRACKERS = []
-LOCATIONS = []
 
 
 class DlibCorrelationTracker:
@@ -28,11 +27,11 @@ class DlibCorrelationTracker:
     def update(self, frame):
         confidence = self._tracker.update(frame)
         pos = self._tracker.get_position()
-        left = int(pos.left())
-        top = int(pos.top())
-        right = int(pos.right())
-        bottom = int(pos.bottom())
         if confidence > self.threshold:
+            left = int(pos.left())
+            top = int(pos.top())
+            right = int(pos.right())
+            bottom = int(pos.bottom())
             label_face(frame, left, top, right, bottom, self._name)
 
 
@@ -60,6 +59,7 @@ class OpencvCSRTTracker:
 def recognize_track_face(frame, tolerance, tracking):
     shrink = 0.25
     face_locations, face_encodings = detect_face(frame, shrink)
+    tracks = []
     for location, face_encoding in zip(face_locations, face_encodings):
         top, right, bottom, left = [int(i / shrink) for i in location]
         distances = face_recognition.face_distance(ENCODINGS, face_encoding)
@@ -68,11 +68,12 @@ def recognize_track_face(frame, tolerance, tracking):
         else:
             name = "Unknown"
         if tracking == "dlib":
-            track = DlibCorrelationTracker(name, 10)
+            track = DlibCorrelationTracker(name, 5)
         else:
             track = OpencvCSRTTracker(name)
         track.init((top, right, bottom, left), frame)
-        TRACKERS.append(track)
+        tracks.append(track)
+    return tracks
 
 
 def detect_face(frame, shrink):
@@ -155,10 +156,11 @@ def show_face():
 
             if tracking:
                 if (len(TRACKERS) == 0) and (len(face_locations) > 0):
-                    recognize_track_face(frame, tolerance, tracking)
+                    track_objs = recognize_track_face(frame, tolerance, tracking)
+                    TRACKERS.extend(track_objs)
                 else:
-                    for track in TRACKERS:
-                        track.update(frame)
+                    for track_obj in TRACKERS:
+                        track_obj.update(frame)
             else:
                 recognize_face(frame, tolerance)
 

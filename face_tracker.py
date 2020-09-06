@@ -1,4 +1,3 @@
-import time
 import pickle
 import cv2
 import face_recognition
@@ -132,7 +131,6 @@ def show_face():
     cam = cv2.VideoCapture(0)
     tolerance = 0.5
     mirror = True
-    now = time.time()
     counter = 0
     miss = 0
     tracker_type = [False, "dlib"]
@@ -149,10 +147,8 @@ def show_face():
             counter = counter % 10000
             height, width, _ = frame.shape
             thick = int((height + width) // 900)
-            if counter % 5 == 1:
-                fps = 5 / (time.time() - now)
-                now = time.time()
-                fps_info = "fps: {}".format(str(int(fps)).zfill(2))
+
+            timer = cv2.getTickCount()
 
             shrink = 0.25
             if counter % 15 == 1:
@@ -175,6 +171,8 @@ def show_face():
             else:
                 recognize_face(frame, tolerance)
 
+            fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
+            fps_info = "fps: {}".format(str(int(fps)))
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
             tracking_info = "Tracker: {}".format(tracking)
             info = ", ".join([fps_info, tolerance_info, tracking_info])

@@ -153,8 +153,8 @@ def show_face():
                 fps = 5 / (time.time() - now)
                 now = time.time()
                 fps_info = "fps: {}".format(str(int(fps)).zfill(2))
-                shrink = 0.25
 
+            shrink = 0.25
             if counter % 15 == 1:
                 small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
                 face_locations = face_recognition.face_locations(small_frame)
@@ -181,10 +181,19 @@ def show_face():
             cv2.putText(
                 frame,
                 text=info,
-                org=(10, 20),
+                org=(10, 45),
                 fontFace=0,
                 fontScale=1e-3 * height,
                 color=(0, 0, 255),
+                thickness=thick,
+            )
+            cv2.putText(
+                frame,
+                text="Press t to switch tracker type. Press m to flip image. Presss ESC to quit.",
+                org=(10, 20),
+                fontFace=0,
+                fontScale=1e-3 * height,
+                color=(0, 0, 200),
                 thickness=thick,
             )
             cv2.imshow("track face", frame)
@@ -202,7 +211,7 @@ def show_face():
             switch += 1
             switch %= len(tracker_type)
             tracking = tracker_type[switch]
-
+    cam.release()
     cv2.destroyAllWindows()
 
 
@@ -211,4 +220,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("Press t to switch tracker type. Press m to flip image. Presss ESC to quit.")
     main()

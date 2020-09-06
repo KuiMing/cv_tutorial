@@ -10,6 +10,16 @@ with open("face_data.pickle", "rb") as f_r:
 f_r.close()
 
 TRACKERS = []
+CV_TRACKER = {
+    "csrt": cv2.TrackerCSRT_create,
+    "kcf": cv2.TrackerKCF_create,
+    "mosse": cv2.TrackerMOSSE_create,
+    "boosting": cv2.TrackerBoosting_create,
+    "tld": cv2.TrackerTLD_create,
+    "goturn": cv2.TrackerGOTURN_create,
+    "medianflow": cv2.TrackerMedianFlow_create,
+    "mil": cv2.TrackerMIL_create,
+}
 
 
 class DlibCorrelationTracker:
@@ -35,14 +45,14 @@ class DlibCorrelationTracker:
             label_face(frame, left, top, right, bottom, self._name)
 
 
-class OpencvCSRTTracker:
-    def __init__(self, name):
-        self._tracker = cv2.TrackerCSRT_create()
+class OpencvTracker:
+    def __init__(self, name, tracker_name):
+        self._tracker = CV_TRACKER[tracker_name]()
         self._name = name
 
     def init(self, location, frame):
         top, right, bottom, left = location
-        rect = (left, top, right, bottom)
+        rect = (left, top, right - left, bottom - top)
         self._tracker.init(frame, rect)
         label_face(frame, left, top, right, bottom, self._name)
 
@@ -51,8 +61,8 @@ class OpencvCSRTTracker:
         if ret_val:
             left = int(pos[0])
             top = int(pos[1])
-            right = int(pos[0] + pos[2] / 2.5)
-            bottom = int(pos[1] + pos[3] / 1.2)
+            right = int(pos[0] + pos[2])
+            bottom = int(pos[1] + pos[3])
             label_face(frame, left, top, right, bottom, self._name)
 
 
@@ -70,7 +80,7 @@ def recognize_track_face(frame, tolerance, tracking):
         if tracking == "dlib":
             track = DlibCorrelationTracker(name, 5)
         else:
-            track = OpencvCSRTTracker(name)
+            track = OpencvTracker(name, tracking)
         track.init((top, right, bottom, left), frame)
         tracks.append(track)
     return tracks
@@ -125,9 +135,10 @@ def show_face():
     now = time.time()
     counter = 0
     miss = 0
-    tracking_list = ["dlib", "csrt", False]
+    tracker_type = [False, "dlib"]
+    tracker_type.extend(list(CV_TRACKER.keys()))
     switch = 0
-    tracking = "dlib"
+    tracking = False
     while True:
         ret_val, frame = cam.read()
         if mirror:
@@ -189,8 +200,8 @@ def show_face():
         if chr(keyboard & 255) == "t":
             TRACKERS.clear()
             switch += 1
-            switch %= 3
-            tracking = tracking_list[switch]
+            switch %= len(tracker_type)
+            tracking = tracker_type[switch]
 
     cv2.destroyAllWindows()
 

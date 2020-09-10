@@ -5,12 +5,9 @@ import glob
 import argparse
 
 
-detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-
-
-def get_chip_name(path):
-
-    files = glob.glob("{}/*".format(path))
+def get_chip_name(folder, xml_path):
+    detector = cv2.CascadeClassifier(xml_path)
+    files = glob.glob("{}/*".format(folder))
     face_chip = []
     names = []
     for f in files:
@@ -25,10 +22,17 @@ def get_chip_name(path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", help="image path", type=str)
+    parser.add_argument("-f", "--folder", help="image folder", type=str)
+    parser.add_argument(
+        "-x",
+        "--xml",
+        help="xml path",
+        type=str,
+        default="haarcascade_frontalface_default.xml",
+    )
     args = parser.parse_args()
     recognizer = cv2.face.LBPHFaceRecognizer_create()
-    faces, names = get_chip_name(args.path)
+    faces, names = get_chip_name(args.folder, args.xml)
     recognizer.train(faces, np.array(list(range(len(faces)))))
     for i, name in enumerate(names):
         recognizer.setLabelInfo(i, name)

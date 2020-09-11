@@ -18,7 +18,7 @@ class DlibFaceRecognition:
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         return face_locations, face_encodings
 
-    def recognize_face(self, frame, tolerance):
+    def recognize_face(self, frame, tolerance=0.5):
         shrink = 0.25
         face_locations, face_encodings = self.detect_face(frame, shrink)
         for location, face_encoding in zip(face_locations, face_encodings):
@@ -53,11 +53,40 @@ def label_face(frame, left, top, right, bottom, name):
     )
 
 
+class OpencvFaceRecognition:
+    def __init__(self):
+        self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+        self.face_recognizer.read("face_data.yml")
+        self.face_detector = cv2.CascadeClassifier(
+            "haarcascade_frontalface_default.xml"
+        )
+
+    def detect_face(self, frame, shrink):
+        small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
+        faces = self.face_detector.detectMultiScale(small_frame, minSize=(100, 100))
+        return faces
+
+    def recognize_face(self, frame, tolerance=0):
+        shrink = 0.25
+        faces = self.detect_face(frame, shrink)
+        for location in faces:
+            left, top, width, height = [int(i / shrink) for i in location]
+            right = left + width
+            bottom = top + height
+            img = cv2.cvtColor(frame[left:right, top:bottom], cv2.COLOR_BGR2GRAY)
+            label, confidence = self.face_recognizer.predict(img)
+            confidence = 1 - confidence / 100
+            name = self.face_recognizer.getLabelInfo(label)
+            if confidence < tolerance:
+                name = "Unknown"
+            label_face(frame, left, top, right, bottom, name)
+
+
 def show_face():
     cam = cv2.VideoCapture(0)
     tolerance = 0.5
     mirror = True
-    recognizer = DlibFaceRecognition()
+    recognizer = OpencvFaceRecognition()
     while True:
         ret_val, frame = cam.read()
         if mirror:
@@ -101,6 +130,7 @@ def show_face():
         # press m to flip frame
         if chr(keyboard & 255) == "m":
             mirror = not mirror
+
     cam.release()
     cv2.destroyAllWindows()
 

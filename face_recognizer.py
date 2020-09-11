@@ -106,8 +106,8 @@ def show_face():
             fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
             fps_info = "fps: {}".format(str(int(fps)))
             tolerance_info = "tolerance: {:.2f}".format(tolerance)
-            # tracking_info = "Tracker: {}".format(tracking)
-            info = ", ".join([fps_info, tolerance_info])
+            recognizer_info = "Recognizer: {}".format(recognizer_type[switch])
+            info = ", ".join([fps_info, tolerance_info, recognizer_info])
             cv2.putText(
                 frame,
                 text=info,

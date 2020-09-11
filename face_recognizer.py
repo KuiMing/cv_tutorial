@@ -66,7 +66,7 @@ class OpencvFaceRecognition:
         faces = self.face_detector.detectMultiScale(small_frame, minSize=(100, 100))
         return faces
 
-    def recognize_face(self, frame, tolerance=0):
+    def recognize_face(self, frame, tolerance=1):
         shrink = 0.25
         faces = self.detect_face(frame, shrink)
         for location in faces:
@@ -75,9 +75,9 @@ class OpencvFaceRecognition:
             bottom = top + height
             img = cv2.cvtColor(frame[left:right, top:bottom], cv2.COLOR_BGR2GRAY)
             label, confidence = self.face_recognizer.predict(img)
-            confidence = 1 - confidence / 100
+            confidence = confidence / 100
             name = self.face_recognizer.getLabelInfo(label)
-            if confidence < tolerance:
+            if confidence > tolerance:
                 name = "Unknown"
             label_face(frame, left, top, right, bottom, name)
 
@@ -87,7 +87,7 @@ RECOGNIZER = {"dlib": DlibFaceRecognition, "opencv": OpencvFaceRecognition}
 
 def show_face():
     cam = cv2.VideoCapture(0)
-    tolerance = 0.5
+    tolerance = 0.6
     mirror = True
     recognizer_type = list(RECOGNIZER.keys())
     recognizer = RECOGNIZER["dlib"]()

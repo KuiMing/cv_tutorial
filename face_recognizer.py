@@ -82,11 +82,16 @@ class OpencvFaceRecognition:
             label_face(frame, left, top, right, bottom, name)
 
 
+RECOGNIZER = {"dlib": DlibFaceRecognition, "opencv": OpencvFaceRecognition}
+
+
 def show_face():
     cam = cv2.VideoCapture(0)
     tolerance = 0.5
     mirror = True
-    recognizer = OpencvFaceRecognition()
+    recognizer_type = list(RECOGNIZER.keys())
+    recognizer = RECOGNIZER["dlib"]()
+    switch = 0
     while True:
         ret_val, frame = cam.read()
         if mirror:
@@ -130,7 +135,11 @@ def show_face():
         # press m to flip frame
         if chr(keyboard & 255) == "m":
             mirror = not mirror
-
+        # press r to switch methods of face recognition
+        if chr(keyboard & 255) == "r":
+            switch += 1
+            switch %= len(recognizer_type)
+            recognizer = RECOGNIZER[recognizer_type[switch]]()
     cam.release()
     cv2.destroyAllWindows()
 

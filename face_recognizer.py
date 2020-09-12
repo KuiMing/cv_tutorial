@@ -67,13 +67,13 @@ class OpencvFaceRecognition:
         return faces
 
     def recognize_face(self, frame, tolerance=1):
-        shrink = 0.25
+        shrink = 1
         faces = self.detect_face(frame, shrink)
         for location in faces:
             left, top, width, height = [int(i / shrink) for i in location]
             right = left + width
             bottom = top + height
-            img = cv2.cvtColor(frame[left:right, top:bottom], cv2.COLOR_BGR2GRAY)
+            img = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
             label, confidence = self.face_recognizer.predict(img)
             confidence = confidence / 100
             name = self.face_recognizer.getLabelInfo(label)

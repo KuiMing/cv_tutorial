@@ -45,6 +45,13 @@ class FacenetEncoding:
         else:
             return None
 
+    def process_image(self, img):
+        face = np.array(img)
+        face_img = cv2.resize(face, (self.image_size, self.image_size))
+        face_img = self.prewhiten(face_img)
+        face_img = face_img[np.newaxis, :]
+        return face_img
+
     def __call__(self):
         face_data_names = []
         face_data_encodings = []
@@ -52,10 +59,13 @@ class FacenetEncoding:
             name = img_path.split("/")[-2]
             print("---")
             print(name)
-            face = self.resize_image(cv2.imread(img_path))
-            if face is not None:
-                face_img = self.prewhiten(face)
-                face_img = face_img[np.newaxis, :]
+            img = cv2.imread(img_path)
+            faces = self.detector.detect_faces(img)
+            if len(faces) > 0:
+                (left, top, width, height) = faces[0]["box"]
+                face_img = self.process_image(
+                    img[top : top + height, left : left + width]
+                )
                 encoding = self.l2_normalize(
                     np.concatenate(self.model.predict(face_img))
                 )

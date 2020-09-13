@@ -113,7 +113,6 @@ class OpencvEncoding:
         self.recognizer = cv2.face.LBPHFaceRecognizer_create()
 
     def get_face_chip(self, image):
-        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         face = self.detector.detectMultiScale(img, minSize=(100, 100))
         if len(face) > 0:
             left, top, width, height = face[0]
@@ -128,7 +127,9 @@ class OpencvEncoding:
             name = img_path.split("/")[-2]
             print("---")
             print(name)
-            face_chip = self.get_face_chip(cv2.imread(img_path))
+            # read image in gray scale
+            img = cv2.imread(img_path, flgas=0)
+            face_chip = self.get_face_chip(img)
             if face_chip is not None:
                 face_data_chips.append(face_chip)
                 face_data_names.append(name)

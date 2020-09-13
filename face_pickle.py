@@ -7,9 +7,11 @@ import pickle
 import face_recognition
 import numpy as np
 from PIL import Image
-from skimage.transform import resize
 from mtcnn import MTCNN
 from keras.models import load_model
+import cv2
+
+# pylint: disable=maybe-no-member
 
 
 class FacenetEncoding:
@@ -67,7 +69,7 @@ class FacenetEncoding:
 
 
 class DlibEncoding:
-    def __init__(self, img_folder, model_path):
+    def __init__(self, img_folder):
         self.filenames = glob.glob("{}/*/*".format(img_folder))
 
     def __call__(self):
@@ -90,6 +92,41 @@ class DlibEncoding:
         with open("face_data.pickle", "wb") as f_w:
             pickle.dump(face_data, f_w)
         f_w.close()
+
+
+class OpencvEncoding:
+    def __init__(self, img_folder, model_path, xml_path):
+        self.filenames = glob.glob("{}/*/*".format(img_folder))
+        self.detector = cv2.CascadeClassifier(xml_path)
+        self.recognizer = cv2.face.LBPHFaceRecognizer_create()
+
+    def get_face_chip(self, image):
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        face = self.detector.detectMultiScale(img, minSize=(100, 100))
+        if len(face) > 0:
+            left, top, width, height = face[0]
+            return img[top : top + height, left : left + width]
+        else:
+            return None
+
+    def __call__(self):
+        face_data_names = []
+        face_data_chips = []
+        for img_path in self.filenames:
+            name = img_path.split("/")[-2]
+            print("---")
+            print(name)
+            face_chip = self.get_face_chip(cv2.imread(img_path))
+            if face_chip is not None:
+                face_data_chips.append(face_chip)
+                face_data_names.append(name)
+            else:
+                print("No face detected in {}".format(img_path))
+
+        self.recognizer.train(face_data_chips, np.array(range(len(face_data_chips))))
+        for i, name in enumerate(face_data_names):
+            self.recognizer.setLabelInfo(i, name)
+        self.recognizer.write("face_data.yml")
 
 
 def main():

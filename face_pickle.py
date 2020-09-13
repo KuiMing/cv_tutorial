@@ -1,6 +1,6 @@
 """
 1. Encode face images which are in face_data folder.
-2. Save encoding data into face_data.pickle.
+2. Save encoding data into face_data.pickle or face_data.yml.
 """
 import glob
 import pickle
@@ -10,6 +10,7 @@ from PIL import Image
 from mtcnn import MTCNN
 from keras.models import load_model
 import cv2
+import argparse
 
 # pylint: disable=maybe-no-member
 
@@ -60,6 +61,7 @@ class FacenetEncoding:
                 )
                 face_data_encodings.append(encoding)
                 face_data_names.append(name)
+                print("{} is encoded".format(img_path))
             else:
                 print("No face detected in {}".format(img_path))
         face_data = [face_data_names, face_data_encodings]
@@ -95,7 +97,7 @@ class DlibEncoding:
 
 
 class OpencvEncoding:
-    def __init__(self, img_folder, model_path, xml_path):
+    def __init__(self, img_folder, xml_path):
         self.filenames = glob.glob("{}/*/*".format(img_folder))
         self.detector = cv2.CascadeClassifier(xml_path)
         self.recognizer = cv2.face.LBPHFaceRecognizer_create()
@@ -120,6 +122,7 @@ class OpencvEncoding:
             if face_chip is not None:
                 face_data_chips.append(face_chip)
                 face_data_names.append(name)
+                print("{} is encoded".format(img_path))
             else:
                 print("No face detected in {}".format(img_path))
 
@@ -129,35 +132,44 @@ class OpencvEncoding:
         self.recognizer.write("face_data.yml")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--image", help="image folder", type=str)
+    parser.add_argument(
+        "-e",
+        "--encoder",
+        help="encoding method: dlib, facenet, opencv",
+        type=str,
+        default="dlib",
+    )
+
+    parser.add_argument(
+        "-m", "--model", help="keras model path", type=str, default="facenet_keras.h5"
+    )
+    parser.add_argument(
+        "-x",
+        "--xml",
+        help="xml path for opencv face detector",
+        type=str,
+        default="haarcascade_frontalface_default.xml",
+    )
+    args = parser.parse_args()
+    return args
+
+
 def main():
     """
-    Encode face images and save picle file
+    Encode face images and save picle or yml file
     """
-    filenames = glob.glob("face_data/*/*")
+    args = parse_args()
+    if args.encoder == "dlib":
+        encoder = DlibEncoding(img_folder=args.image)
+    elif args.encoder == "facenet":
+        encoder = FacenetEncoding(img_folder=args.image, model_path=args.model)
+    elif args.encoder == "opencv":
+        encoder = OpencvEncoding(img_folder=args.image, xml_path=args.xml)
 
-    face_data_names = []
-    face_data_encodings = []
-    for img_path in filenames:
-        name = img_path.split("/")[-2]
-        print("---")
-        print(name)
-        image = face_recognition.load_image_file(img_path)
-        height, width, _ = image.shape
-        image_resized = np.array(
-            Image.fromarray(image).resize((int(height / width * 500), 500))
-        )
-        face_encodings = face_recognition.face_encodings(image_resized, num_jitters=4)
-        if len(face_encodings) > 0:
-            face_encoding = face_encodings[0]
-            face_data_names.append(name)
-            face_data_encodings.append(face_encoding)
-            print("{} is encoded".format(img_path))
-        else:
-            print("No face detected in {}".format(img_path))
-    face_data = [face_data_names, face_data_encodings]
-    with open("face_data.pickle", "wb") as f_w:
-        pickle.dump(face_data, f_w)
-    f_w.close()
+    encoder()
 
 
 if __name__ == "__main__":

@@ -75,7 +75,7 @@ class FacenetEncoding:
             else:
                 print("No face detected in {}".format(img_path))
         face_data = [face_data_names, face_data_encodings]
-        with open("face_data.pickle", "wb") as f_w:
+        with open("face_data_facenet.pickle", "wb") as f_w:
             pickle.dump(face_data, f_w)
         f_w.close()
 
@@ -101,7 +101,7 @@ class DlibEncoding:
             else:
                 print("No face detected in {}".format(img_path))
         face_data = [face_data_names, face_data_encodings]
-        with open("face_data.pickle", "wb") as f_w:
+        with open("face_data_dlib.pickle", "wb") as f_w:
             pickle.dump(face_data, f_w)
         f_w.close()
 

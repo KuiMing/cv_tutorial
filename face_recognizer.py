@@ -33,7 +33,7 @@ def label_face(frame, left, top, right, bottom, name):
 
 class FacenetRecognition:
     def __init__(self):
-        with open("face_data.pickle", "rb") as f_r:
+        with open("face_data_facenet.pickle", "rb") as f_r:
             self.names, self.encodings = pickle.load(f_r)
         f_r.close()
         self.image_size = 160
@@ -94,7 +94,7 @@ class FacenetRecognition:
 
 class DlibFaceRecognition:
     def __init__(self):
-        with open("face_data.pickle", "rb") as f_r:
+        with open("face_data_dlib.pickle", "rb") as f_r:
             self.names, self.encodings = pickle.load(f_r)
         f_r.close()
 
@@ -147,9 +147,9 @@ class OpencvFaceRecognition:
 
 
 RECOGNIZER = {
-    "dlib": DlibFaceRecognition,
-    "facenet": FacenetRecognition,
-    "opencv": OpencvFaceRecognition,
+    "dlib": DlibFaceRecognition(),
+    "facenet": FacenetRecognition(),
+    "opencv": OpencvFaceRecognition(),
 }
 
 
@@ -158,7 +158,7 @@ def show_face():
     tolerance = 0.6
     mirror = True
     recognizer_type = list(RECOGNIZER.keys())
-    recognizer = RECOGNIZER["dlib"]()
+    recognizer = RECOGNIZER["dlib"]
     switch = 0
     while True:
         ret_val, frame = cam.read()
@@ -187,7 +187,7 @@ def show_face():
             )
             cv2.putText(
                 frame,
-                text="Press m to flip image. Presss ESC to quit.",
+                text="m: flip image. r: switch recognizer. x and z: tune tolerance. ESC: quit.",
                 org=(10, 20),
                 fontFace=0,
                 fontScale=1e-3 * height,
@@ -207,7 +207,11 @@ def show_face():
         if chr(keyboard & 255) == "r":
             switch += 1
             switch %= len(recognizer_type)
-            recognizer = RECOGNIZER[recognizer_type[switch]]()
+            recognizer = RECOGNIZER[recognizer_type[switch]]
+        if chr(keyboard & 255) == "x":
+            tolerance += 0.1
+        if chr(keyboard & 255) == "z":
+            tolerance -= 0.1
     cam.release()
     cv2.destroyAllWindows()
 
@@ -217,5 +221,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Press m to flip image. Presss ESC to quit.")
     main()

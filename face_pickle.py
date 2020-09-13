@@ -58,6 +58,34 @@ class FacenetEncoding:
                 )
                 face_data_encodings.append(encoding)
                 face_data_names.append(name)
+            else:
+                print("No face detected in {}".format(img_path))
+        face_data = [face_data_names, face_data_encodings]
+        with open("face_data.pickle", "wb") as f_w:
+            pickle.dump(face_data, f_w)
+        f_w.close()
+
+
+class DlibEncoding:
+    def __init__(self, img_folder, model_path):
+        self.filenames = glob.glob("{}/*/*".format(img_folder))
+
+    def __call__(self):
+        face_data_names = []
+        face_data_encodings = []
+        for img_path in self.filenames:
+            name = img_path.split("/")[-2]
+            print("---")
+            print(name)
+            image = face_recognition.load_image_file(img_path)
+            face_encodings = face_recognition.face_encodings(image, num_jitters=4)
+            if len(face_encodings) > 0:
+                face_encoding = face_encodings[0]
+                face_data_names.append(name)
+                face_data_encodings.append(face_encoding)
+                print("{} is encoded".format(img_path))
+            else:
+                print("No face detected in {}".format(img_path))
         face_data = [face_data_names, face_data_encodings]
         with open("face_data.pickle", "wb") as f_w:
             pickle.dump(face_data, f_w)

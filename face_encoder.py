@@ -15,18 +15,20 @@ import argparse
 # pylint: disable=maybe-no-member
 def align_face(image):
     landmark = face_recognition.face_landmarks(image, model="small")
-    eye_center = [
-        np.mean(landmark[0]["left_eye"], axis=0).astype(int),
-        np.mean(landmark[0]["right_eye"], axis=0).astype(int),
-    ]
-
-    vector = eye_center[0] - eye_center[1]
-    angle = np.angle(complex(vector[0], vector[1]), deg=True)
-    if abs(angle) >= 90:
-        angle = 180 - abs(angle)
-    pil_img = Image.fromarray(image)
-    pil_img = pil_img.rotate(angle * np.sign(vector[0] * vector[1]))
-    return np.array(pil_img)
+    if len(landmark) > 0:
+        eye_center = [
+            np.mean(landmark[0]["left_eye"], axis=0).astype(int),
+            np.mean(landmark[0]["right_eye"], axis=0).astype(int),
+        ]
+        vector = eye_center[0] - eye_center[1]
+        angle = np.angle(complex(vector[0], vector[1]), deg=True)
+        if abs(angle) >= 90:
+            angle = 180 - abs(angle)
+        pil_img = Image.fromarray(image)
+        pil_img = pil_img.rotate(angle * np.sign(vector[0] * vector[1]))
+        return np.array(pil_img)
+    else:
+        return None
 
 
 class FacenetEncoding:
@@ -125,6 +127,7 @@ class OpencvEncoding:
         self.filenames = glob.glob("{}/*/*".format(img_folder))
         self.detector = cv2.CascadeClassifier(xml_path)
         self.recognizer = cv2.face.LBPHFaceRecognizer_create()
+        self.image_size = 160
 
     def get_face_chip(self, image):
         face = self.detector.detectMultiScale(image, minSize=(100, 100))
@@ -134,6 +137,14 @@ class OpencvEncoding:
         else:
             return None
 
+    def process_image(self, image):
+        face_chip = self.get_face_chip(image)
+        if face_chip is not None:
+            aligned_face = align_face(face_chip)
+            if aligned_face is not None:
+                face_img = cv2.resize(aligned_face, (self.image_size, self.image_size))
+                return face_img
+
     def __call__(self):
         face_data_names = []
         face_data_chips = []
@@ -142,8 +153,8 @@ class OpencvEncoding:
             print("---")
             print(name)
             # read image in gray scale
-            img = cv2.imread(img_path, flgas=0)
-            face_chip = self.get_face_chip(img)
+            img = cv2.imread(img_path, flags=0)
+            face_chip = self.process_image(img)
             if face_chip is not None:
                 face_data_chips.append(face_chip)
                 face_data_names.append(name)

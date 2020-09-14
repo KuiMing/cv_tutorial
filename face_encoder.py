@@ -13,6 +13,20 @@ import cv2
 import argparse
 
 # pylint: disable=maybe-no-member
+def align_face(image):
+    landmark = face_recognition.face_landmarks(image, model="small")
+    eye_center = [
+        np.mean(landmark[0]["left_eye"], axis=0).astype(int),
+        np.mean(landmark[0]["right_eye"], axis=0).astype(int),
+    ]
+
+    vector = eye_center[0] - eye_center[1]
+    angle = np.angle(complex(vector[0], vector[1]), deg=True)
+    if abs(angle) >= 90:
+        angle = 180 - abs(angle)
+    pil_img = Image.fromarray(image)
+    pil_img = pil_img.rotate(angle * np.sign(vector[0] * vector[1]))
+    return np.array(pil_img)
 
 
 class FacenetEncoding:
@@ -113,10 +127,10 @@ class OpencvEncoding:
         self.recognizer = cv2.face.LBPHFaceRecognizer_create()
 
     def get_face_chip(self, image):
-        face = self.detector.detectMultiScale(img, minSize=(100, 100))
+        face = self.detector.detectMultiScale(image, minSize=(100, 100))
         if len(face) > 0:
             left, top, width, height = face[0]
-            return img[top : top + height, left : left + width]
+            return image[top : top + height, left : left + width]
         else:
             return None
 

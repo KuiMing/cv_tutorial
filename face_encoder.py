@@ -51,22 +51,17 @@ class FacenetEncoding:
         )
         return output
 
-    def resize_image(self, img):
+    def process_image(self, img):
         faces = self.detector.detect_faces(img)
         if len(faces) > 0:
             (left, top, width, height) = faces[0]["box"]
             face = np.array(img[top : top + height, left : left + width])
-            output = cv2.resize(face, (self.image_size, self.image_size))
-            return output
-        else:
-            return None
-
-    def process_image(self, img):
-        face = np.array(img)
-        face_img = cv2.resize(face, (self.image_size, self.image_size))
-        face_img = self.prewhiten(face_img)
-        face_img = face_img[np.newaxis, :]
-        return face_img
+            face = align_face(face)
+            if face is not None:
+                face_img = cv2.resize(face, (self.image_size, self.image_size))
+                face_img = self.prewhiten(face_img)
+                face_img = face_img[np.newaxis, :]
+                return face_img
 
     def __call__(self):
         face_data_names = []
@@ -76,12 +71,8 @@ class FacenetEncoding:
             print("---")
             print(name)
             img = cv2.imread(img_path)
-            faces = self.detector.detect_faces(img)
-            if len(faces) > 0:
-                (left, top, width, height) = faces[0]["box"]
-                face_img = self.process_image(
-                    img[top : top + height, left : left + width]
-                )
+            face_img = self.process_image(img)
+            if face_img is not None:
                 encoding = self.l2_normalize(
                     np.concatenate(self.model.predict(face_img))
                 )
@@ -90,6 +81,7 @@ class FacenetEncoding:
                 print("{} is encoded".format(img_path))
             else:
                 print("No face detected in {}".format(img_path))
+
         face_data = [face_data_names, face_data_encodings]
         with open("face_data_facenet.pickle", "wb") as f_w:
             pickle.dump(face_data, f_w)

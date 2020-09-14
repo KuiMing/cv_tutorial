@@ -1,10 +1,10 @@
 import pickle
 import cv2
 import face_recognition
-import dlib
 import numpy as np
 from keras.models import load_model
 from mtcnn import MTCNN
+from face_encoder import align_face
 
 # pylint: disable=maybe-no-member
 
@@ -42,22 +42,26 @@ class FacenetRecognition:
 
     def process_image(self, img):
         face = np.array(img)
-        face_img = cv2.resize(face, (self.image_size, self.image_size))
-        face_img = self.prewhiten(face_img)
-        face_img = face_img[np.newaxis, :]
-        return face_img
+        face = align_face(face)
+        if face is not None:
+            face_img = cv2.resize(face, (self.image_size, self.image_size))
+            face_img = self.prewhiten(face_img)
+            face_img = face_img[np.newaxis, :]
+            return face_img
 
     def detect_face(self, frame, shrink):
         face_encodings = []
         face_locations = []
         small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
         faces = self.detector.detect_faces(small_frame)
-        if len(faces) > 0:
-            for i in faces:
-                (left, top, width, height) = i["box"]
-                face_img = self.process_image(
-                    small_frame[top : top + height, left : left + width]
-                )
+        if len(faces) == 0:
+            return face_locations, face_encodings
+        for i in faces:
+            (left, top, width, height) = i["box"]
+            face_img = self.process_image(
+                small_frame[top : top + height, left : left + width]
+            )
+            if face_img is not None:
                 encoding = self.l2_normalize(
                     np.concatenate(self.model.predict(face_img))
                 )
@@ -124,6 +128,7 @@ class OpencvFaceRecognition:
         self.face_detector = cv2.CascadeClassifier(
             "haarcascade_frontalface_default.xml"
         )
+        self.image_size = 160
 
     def detect_face(self, frame, shrink):
         small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
@@ -138,12 +143,15 @@ class OpencvFaceRecognition:
             right = left + width
             bottom = top + height
             img = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
-            label, confidence = self.face_recognizer.predict(img)
-            confidence = confidence / 100
-            name = self.face_recognizer.getLabelInfo(label)
-            if confidence > tolerance:
-                name = "Unknown"
-            label_face(frame, left, top, right, bottom, name)
+            aligned_face = align_face(img)
+            if aligned_face is not None:
+                img = cv2.resize(aligned_face, (self.image_size, self.image_size))
+                label, confidence = self.face_recognizer.predict(aligned_face)
+                confidence = confidence / 100
+                name = self.face_recognizer.getLabelInfo(label)
+                if confidence > tolerance:
+                    name = "Unknown"
+                label_face(frame, left, top, right, bottom, name)
 
 
 RECOGNIZER = {

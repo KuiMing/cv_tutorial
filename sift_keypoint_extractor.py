@@ -23,9 +23,9 @@ def main():
         img = imageio.imread(args.image)
     except FileNotFoundError:
         img = cv2.imread(args.image)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     img = cv2.resize(img, None, fx=0.1, fy=0.1)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     sift = cv2.xfeatures2d.SIFT_create()
@@ -37,13 +37,11 @@ def main():
     )
 
     plt.subplot(121)
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    plt.imshow(img_rgb)
+    plt.imshow(img)
     plt.title("Raw Image")
 
     plt.subplot(122)
-    img_sift_rgb = cv2.cvtColor(img_sift, cv2.COLOR_BGR2RGB)
-    plt.imshow(img_sift_rgb)
+    plt.imshow(img_sift)
     plt.title("Image with keypoints")
     plt.show()
 

@@ -12,14 +12,13 @@ def resize_and_gray_image(image_path):
         img = imageio.imread(image_path)
     except FileNotFoundError:
         img = cv2.imread(image_path)
-    img = cv2.resize(img, None, fx=0.1, fy=0.1)
-    if float(cv2.__version__[0:3]) < 4.4:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.resize(img, None, fx=0.2, fy=0.2)
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return img, img_gray
 
 
-def sift_matching_image(train_image, query_image):
+def sift_match_feature(train_image, query_image):
     img1, img1_gray = resize_and_gray_image(train_image)
     img2, img2_gray = resize_and_gray_image(query_image)
 
@@ -42,7 +41,7 @@ def sift_matching_image(train_image, query_image):
     return good_matches
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-t",
@@ -61,7 +60,12 @@ def main():
     )
 
     args = parser.parse_args()
-    matches = sift_matching_image(args.train_image, args.query_image)
+    return args
+
+
+def main():
+    args = parse_args()
+    matches = sift_match_feature(args.train_image, args.query_image)
 
 
 if __name__ == "__main__":

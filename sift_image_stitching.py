@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from sift_feature_matching import resize_and_gray_image, parse_args
 
 np.random.seed(23)

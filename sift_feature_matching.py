@@ -11,9 +11,9 @@ np.random.seed(23)
 def resize_and_gray_image(image_path):
     try:
         img = imageio.imread(image_path)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     except FileNotFoundError:
         img = cv2.imread(image_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, None, fx=0.2, fy=0.2)
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return img, img_gray
@@ -37,8 +37,9 @@ def sift_match_feature(train_image, query_image):
             good_matches.append(m)
     img3 = cv2.drawMatches(img1, kp1, img2, kp2, good_matches, img1, flags=2)
 
-    plt.imshow(img3)
-    plt.show()
+    cv2.imshow("feature matching", img3)
+    cv2.waitKey()
+
     return good_matches
 
 

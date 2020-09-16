@@ -40,23 +40,16 @@ def main():
     height = train_img.shape[0] + query_img.shape[0]
     homograph = get_homography(kps_t, kps_q, good_matches, reprojThresh=4)
 
-    plt.imshow(train_img)
-    plt.axis("off")
-    plt.show()
-
-    plt.imshow(query_img)
-    plt.axis("off")
-    plt.show()
+    cv2.imshow("keypoint", np.concatenate([train_img, query_img], axis=1))
+    cv2.waitKey()
 
     result = cv2.warpPerspective(train_img, homograph, (width, height))
-    plt.imshow(result)
-    plt.axis("off")
-    plt.show()
+    cv2.imshow("keypoint", result)
+    cv2.waitKey()
 
     result[0 : query_img.shape[0], 0 : query_img.shape[1]] = query_img
-    plt.imshow(result)
-    plt.axis("off")
-    plt.show()
+    cv2.imshow("keypoint", result)
+    cv2.waitKey()
 
 
 if __name__ == "__main__":

@@ -21,9 +21,9 @@ def main():
 
     try:
         img = imageio.imread(args.image)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     except FileNotFoundError:
         img = cv2.imread(args.image)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     img = cv2.resize(img, None, fx=0.1, fy=0.1)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -36,14 +36,8 @@ def main():
         img, keypoints, img_sift, flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
     )
 
-    plt.subplot(121)
-    plt.imshow(img)
-    plt.title("Raw Image")
-
-    plt.subplot(122)
-    plt.imshow(img_sift)
-    plt.title("Image with keypoints")
-    plt.show()
+    cv2.imshow("keypoint", np.concatenate([img, img_sift], axis=1))
+    cv2.waitKey()
 
 
 if __name__ == "__main__":

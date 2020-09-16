@@ -84,3 +84,10 @@ heroku config:set FACE_END=...
 ```
 
 6. `git push herku master`
+
+# Face Recognition
+
+## Pretrained Model
+
+- [Opencv Haar cascade face detection](https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xml)
+- [Facenet keras model](https://drive.google.com/drive/folders/12aMYASGCKvDdkygSv1yQq8ns03AStDO_)

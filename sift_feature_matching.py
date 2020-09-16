@@ -1,8 +1,9 @@
+import argparse
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import imageio
-import argparse
+
 
 np.random.seed(23)
 
@@ -27,8 +28,8 @@ def sift_match_feature(train_image, query_image):
     kp1, des1 = sift.detectAndCompute(img1_gray, None)
     kp2, des2 = sift.detectAndCompute(img2_gray, None)
 
-    bf = cv2.BFMatcher()
-    matches = bf.knnMatch(des1, des2, k=2)
+    bf_matcher = cv2.BFMatcher()
+    matches = bf_matcher.knnMatch(des1, des2, k=2)
 
     good_matches = []
     for m, n in matches:

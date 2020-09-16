@@ -1,15 +1,12 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import imageio
-import argparse
 from sift_feature_matching import resize_and_gray_image, parse_args
 
 np.random.seed(23)
 
 
-def get_homography(kpsT, kpsQ, desT, desQ, matches, reprojThresh):
-    # convert the keypoints to numpy arrays
+def get_homography(kpsT, kpsQ, matches, reprojThresh):
     point_t = np.float32([kp.pt for kp in kpsT])
     point_q = np.float32([kp.pt for kp in kpsQ])
     if len(matches) > 4:
@@ -28,11 +25,11 @@ def main():
 
     sift = cv2.xfeatures2d.SIFT_create()
 
-    kpsT, desT = sift.detectAndCompute(train_gray, None)
-    kpsQ, desQ = sift.detectAndCompute(query_gray, None)
+    kps_t, des_t = sift.detectAndCompute(train_gray, None)
+    kps_q, des_q = sift.detectAndCompute(query_gray, None)
 
-    bf = cv2.BFMatcher()
-    matches = bf.knnMatch(desT, desQ, k=2)
+    bf_matcher = cv2.BFMatcher()
+    matches = bf_matcher.knnMatch(des_t, des_q, k=2)
 
     good_matches = []
     for m, n in matches:
@@ -41,7 +38,7 @@ def main():
 
     width = train_img.shape[1] + query_img.shape[1]
     height = train_img.shape[0] + query_img.shape[0]
-    homograph = get_homography(kpsT, kpsQ, desT, desQ, good_matches, reprojThresh=4)
+    homograph = get_homography(kps_t, kps_q, good_matches, reprojThresh=4)
 
     plt.imshow(train_img)
     plt.axis("off")

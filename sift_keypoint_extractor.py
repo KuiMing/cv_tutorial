@@ -1,8 +1,8 @@
+import argparse
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import imageio
-import argparse
 
 np.random.seed(23)
 

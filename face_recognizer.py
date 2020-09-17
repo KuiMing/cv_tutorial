@@ -168,6 +168,7 @@ def show_face():
     recognizer_type = list(RECOGNIZER.keys())
     recognizer = RECOGNIZER["dlib"]
     switch = 0
+    cv2.namedWindow("track face", cv2.WINDOW_GUI_NORMAL)
     while True:
         ret_val, frame = cam.read()
         if mirror:
@@ -202,6 +203,7 @@ def show_face():
                 color=(0, 0, 200),
                 thickness=thick,
             )
+
             cv2.imshow("track face", frame)
 
         keyboard = cv2.waitKey(1)

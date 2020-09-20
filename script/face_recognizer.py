@@ -159,9 +159,6 @@ def show_face():
         if mirror:
             frame = cv2.flip(frame, 1)
 
-        height, width, _ = frame.shape
-        thick = int((height + width) // 900)
-
         recognizer.recognize_face(frame, tolerance)
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
@@ -173,7 +170,9 @@ def show_face():
         )
         label_info(frame, botton_info, fps_info, tolerance_info, recognizer_info)
 
-        cv2.imshow("track face", frame)
+        cv2.namedWindow("Face", cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty("Face", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        cv2.imshow("Face", frame)
 
         keyboard = cv2.waitKey(1)
         # esc to quit

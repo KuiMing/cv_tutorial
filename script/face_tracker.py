@@ -159,7 +159,9 @@ def show_face():
         )
         label_info(frame, button_info, fps_info, tolerance_info, tracking_info)
 
-        cv2.imshow("track face", frame)
+        cv2.namedWindow("Track", cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty("Track", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        cv2.imshow("Track", frame)
 
         keyboard = cv2.waitKey(1)
         # esc to quit

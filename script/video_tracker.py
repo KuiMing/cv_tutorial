@@ -112,7 +112,9 @@ def main():
         button_info = "Press ESC to quit"
         label_info(frame, button_info, fps_info, tracking_info)
 
-        cv2.imshow("track object", frame)
+        cv2.namedWindow("Track", cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty("Track", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        cv2.imshow("Track", frame)
 
         keyboard = cv2.waitKey(1)
         # esc to quit

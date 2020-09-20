@@ -171,40 +171,43 @@ def show_face():
     cv2.namedWindow("track face", cv2.WINDOW_GUI_NORMAL)
     while True:
         ret_val, frame = cam.read()
+
+        if not ret_val:
+            break
+
         if mirror:
             frame = cv2.flip(frame, 1)
 
-        if ret_val:
-            height, width, _ = frame.shape
-            thick = int((height + width) // 900)
+        height, width, _ = frame.shape
+        thick = int((height + width) // 900)
 
-            timer = cv2.getTickCount()
-            recognizer.recognize_face(frame, tolerance)
-            fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-            fps_info = "fps: {}".format(str(int(fps)))
-            tolerance_info = "tolerance: {:.2f}".format(tolerance)
-            recognizer_info = "Recognizer: {}".format(recognizer_type[switch])
-            info = ", ".join([fps_info, tolerance_info, recognizer_info])
-            cv2.putText(
-                frame,
-                text=info,
-                org=(10, 45),
-                fontFace=0,
-                fontScale=1e-3 * height,
-                color=(0, 0, 255),
-                thickness=thick,
-            )
-            cv2.putText(
-                frame,
-                text="m: flip image. r: switch recognizer. x and z: tune tolerance. ESC: quit.",
-                org=(10, 20),
-                fontFace=0,
-                fontScale=1e-3 * height,
-                color=(0, 0, 200),
-                thickness=thick,
-            )
+        timer = cv2.getTickCount()
+        recognizer.recognize_face(frame, tolerance)
+        fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
+        fps_info = "fps: {}".format(str(int(fps)))
+        tolerance_info = "tolerance: {:.2f}".format(tolerance)
+        recognizer_info = "Recognizer: {}".format(recognizer_type[switch])
+        info = ", ".join([fps_info, tolerance_info, recognizer_info])
+        cv2.putText(
+            frame,
+            text=info,
+            org=(10, 45),
+            fontFace=0,
+            fontScale=1e-3 * height,
+            color=(0, 0, 255),
+            thickness=thick,
+        )
+        cv2.putText(
+            frame,
+            text="m: flip image. r: switch recognizer. x and z: tune tolerance. ESC: quit.",
+            org=(10, 20),
+            fontFace=0,
+            fontScale=1e-3 * height,
+            color=(0, 0, 200),
+            thickness=thick,
+        )
 
-            cv2.imshow("track face", frame)
+        cv2.imshow("track face", frame)
 
         keyboard = cv2.waitKey(1)
         # esc to quit

@@ -139,62 +139,65 @@ def show_face():
     tracking = False
     while True:
         ret_val, frame = cam.read()
+
+        if not ret_val:
+            break
+
         if mirror:
             frame = cv2.flip(frame, 1)
 
-        if ret_val:
-            counter += 1
-            counter = counter % 10000
-            height, width, _ = frame.shape
-            thick = int((height + width) // 900)
+        counter += 1
+        counter = counter % 10000
+        height, width, _ = frame.shape
+        thick = int((height + width) // 900)
 
-            timer = cv2.getTickCount()
+        timer = cv2.getTickCount()
 
-            shrink = 0.25
-            if counter % 15 == 1:
-                small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
-                face_locations = face_recognition.face_locations(small_frame)
-                if len(face_locations) != len(TRACKERS):
-                    miss += 1
+        shrink = 0.25
+        if counter % 15 == 1:
+            small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
+            face_locations = face_recognition.face_locations(small_frame)
+            if len(face_locations) != len(TRACKERS):
+                miss += 1
 
-            if (len(face_locations) != len(TRACKERS)) and (miss >= 10):
-                TRACKERS.clear()
-                miss = 0
+        if (len(face_locations) != len(TRACKERS)) and (miss >= 10):
+            TRACKERS.clear()
+            miss = 0
 
-            if tracking:
-                if (len(TRACKERS) == 0) and (len(face_locations) > 0):
-                    track_objs = recognize_track_face(frame, tolerance, tracking)
-                    TRACKERS.extend(track_objs)
-                else:
-                    for track_obj in TRACKERS:
-                        track_obj.update(frame)
+        if tracking:
+            if (len(TRACKERS) == 0) and (len(face_locations) > 0):
+                track_objs = recognize_track_face(frame, tolerance, tracking)
+                TRACKERS.extend(track_objs)
             else:
-                recognize_face(frame, tolerance)
+                for track_obj in TRACKERS:
+                    track_obj.update(frame)
+        else:
+            recognize_face(frame, tolerance)
 
-            fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-            fps_info = "fps: {}".format(str(int(fps)))
-            tolerance_info = "tolerance: {:.2f}".format(tolerance)
-            tracking_info = "Tracker: {}".format(tracking)
-            info = ", ".join([fps_info, tolerance_info, tracking_info])
-            cv2.putText(
-                frame,
-                text=info,
-                org=(10, 45),
-                fontFace=0,
-                fontScale=1e-3 * height,
-                color=(0, 0, 255),
-                thickness=thick,
-            )
-            cv2.putText(
-                frame,
-                text="Press t to switch tracker type. Press m to flip image. Presss ESC to quit.",
-                org=(10, 20),
-                fontFace=0,
-                fontScale=1e-3 * height,
-                color=(0, 0, 200),
-                thickness=thick,
-            )
-            cv2.imshow("track face", frame)
+        fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
+        fps_info = "fps: {}".format(str(int(fps)))
+        tolerance_info = "tolerance: {:.2f}".format(tolerance)
+        tracking_info = "Tracker: {}".format(tracking)
+        info = ", ".join([fps_info, tolerance_info, tracking_info])
+        cv2.putText(
+            frame,
+            text=info,
+            org=(10, 45),
+            fontFace=0,
+            fontScale=1e-3 * height,
+            color=(0, 0, 255),
+            thickness=thick,
+        )
+        cv2.putText(
+            frame,
+            text="Press t to switch tracker type. Press m to flip image. Presss ESC to quit.",
+            org=(10, 20),
+            fontFace=0,
+            fontScale=1e-3 * height,
+            color=(0, 0, 200),
+            thickness=thick,
+        )
+        cv2.imshow("track face", frame)
 
         keyboard = cv2.waitKey(1)
         # esc to quit

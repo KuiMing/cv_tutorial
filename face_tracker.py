@@ -2,9 +2,10 @@ import pickle
 import cv2
 import face_recognition
 import dlib
+from image_labeler import label_object, label_info
 
 # pylint: disable=maybe-no-member
-with open("face_data.pickle", "rb") as f_r:
+with open("face_data_dlib.pickle", "rb") as f_r:
     NAMES, ENCODINGS = pickle.load(f_r)
 f_r.close()
 
@@ -31,7 +32,7 @@ class DlibCorrelationTracker:
         top, right, bottom, left = location
         rect = dlib.rectangle(left, top, right, bottom)
         self._tracker.start_track(frame, rect)
-        label_face(frame, left, top, right, bottom, self._name)
+        label_object(frame, left, top, right, bottom, self._name)
 
     def update(self, frame):
         confidence = self._tracker.update(frame)
@@ -41,7 +42,7 @@ class DlibCorrelationTracker:
             top = int(pos.top())
             right = int(pos.right())
             bottom = int(pos.bottom())
-            label_face(frame, left, top, right, bottom, self._name)
+            label_object(frame, left, top, right, bottom, self._name)
 
 
 class OpencvTracker:
@@ -53,7 +54,7 @@ class OpencvTracker:
         top, right, bottom, left = location
         rect = (left, top, right - left, bottom - top)
         self._tracker.init(frame, rect)
-        label_face(frame, left, top, right, bottom, self._name)
+        label_object(frame, left, top, right, bottom, self._name)
 
     def update(self, frame):
         ret_val, pos = self._tracker.update(frame)
@@ -62,7 +63,7 @@ class OpencvTracker:
             top = int(pos[1])
             right = int(pos[0] + pos[2])
             bottom = int(pos[1] + pos[3])
-            label_face(frame, left, top, right, bottom, self._name)
+            label_object(frame, left, top, right, bottom, self._name)
 
 
 def recognize_track_face(frame, tolerance, tracking):
@@ -102,29 +103,7 @@ def recognize_face(frame, tolerance):
             name = NAMES[distances.argmin()]
         else:
             name = "Unknown"
-        label_face(frame, left, top, right, bottom, name)
-
-
-def label_face(frame, left, top, right, bottom, name):
-    cv2.rectangle(
-        frame, pt1=(left, top), pt2=(right, bottom), color=(0, 0, 255), thickness=2
-    )
-    cv2.rectangle(
-        frame,
-        pt1=(left, bottom - 35),
-        pt2=(right, bottom),
-        color=(0, 0, 255),
-        thickness=cv2.FILLED,
-    )
-    cv2.putText(
-        frame,
-        text=name,
-        org=(left + 6, bottom - 6),
-        fontFace=cv2.FONT_HERSHEY_DUPLEX,
-        fontScale=1.0,
-        color=(255, 255, 255),
-        thickness=1,
-    )
+        label_object(frame, left, top, right, bottom, name)
 
 
 def show_face():
@@ -149,8 +128,6 @@ def show_face():
 
         counter += 1
         counter = counter % 10000
-        height, width, _ = frame.shape
-        thick = int((height + width) // 900)
 
         shrink = 0.25
         if counter % 15 == 1:
@@ -177,25 +154,11 @@ def show_face():
         fps_info = "fps: {}".format(str(int(fps)))
         tolerance_info = "tolerance: {:.2f}".format(tolerance)
         tracking_info = "Tracker: {}".format(tracking)
-        info = ", ".join([fps_info, tolerance_info, tracking_info])
-        cv2.putText(
-            frame,
-            text=info,
-            org=(10, 45),
-            fontFace=0,
-            fontScale=1e-3 * height,
-            color=(0, 0, 255),
-            thickness=thick,
+        button_info = (
+            "Press t to switch tracker type. Press m to flip image. Presss ESC to quit."
         )
-        cv2.putText(
-            frame,
-            text="Press t to switch tracker type. Press m to flip image. Presss ESC to quit.",
-            org=(10, 20),
-            fontFace=0,
-            fontScale=1e-3 * height,
-            color=(0, 0, 200),
-            thickness=thick,
-        )
+        label_info(frame, button_info, fps_info, tolerance_info, tracking_info)
+
         cv2.imshow("track face", frame)
 
         keyboard = cv2.waitKey(1)

@@ -5,30 +5,10 @@ import numpy as np
 from keras.models import load_model
 from mtcnn import MTCNN
 from face_encoder import align_face
+from image_labeler import label_object, label_info
+
 
 # pylint: disable=maybe-no-member
-
-
-def label_face(frame, left, top, right, bottom, name):
-    cv2.rectangle(
-        frame, pt1=(left, top), pt2=(right, bottom), color=(0, 0, 255), thickness=2
-    )
-    cv2.rectangle(
-        frame,
-        pt1=(left, bottom - 35),
-        pt2=(right, bottom),
-        color=(0, 0, 255),
-        thickness=cv2.FILLED,
-    )
-    cv2.putText(
-        frame,
-        text=name,
-        org=(left + 6, bottom - 6),
-        fontFace=cv2.FONT_HERSHEY_DUPLEX,
-        fontScale=1.0,
-        color=(255, 255, 255),
-        thickness=1,
-    )
 
 
 class FacenetRecognition:
@@ -93,7 +73,7 @@ class FacenetRecognition:
                 name = self.names[distances.argmin()]
             else:
                 name = "Unknown"
-            label_face(frame, left, top, right, bottom, name)
+            label_object(frame, left, top, right, bottom, name)
 
 
 class DlibFaceRecognition:
@@ -118,7 +98,7 @@ class DlibFaceRecognition:
                 name = self.names[distances.argmin()]
             else:
                 name = "Unknown"
-            label_face(frame, left, top, right, bottom, name)
+            label_object(frame, left, top, right, bottom, name)
 
 
 class OpencvFaceRecognition:
@@ -151,7 +131,7 @@ class OpencvFaceRecognition:
                 name = self.face_recognizer.getLabelInfo(label)
                 if confidence > tolerance:
                     name = "Unknown"
-                label_face(frame, left, top, right, bottom, name)
+                label_object(frame, left, top, right, bottom, name)
 
 
 RECOGNIZER = {
@@ -188,25 +168,10 @@ def show_face():
         fps_info = "fps: {}".format(str(int(fps)))
         tolerance_info = "tolerance: {:.2f}".format(tolerance)
         recognizer_info = "Recognizer: {}".format(recognizer_type[switch])
-        info = ", ".join([fps_info, tolerance_info, recognizer_info])
-        cv2.putText(
-            frame,
-            text=info,
-            org=(10, 45),
-            fontFace=0,
-            fontScale=1e-3 * height,
-            color=(0, 0, 255),
-            thickness=thick,
+        botton_info = (
+            "m: flip image. r: switch recognizer. x and z: tune tolerance. ESC: quit."
         )
-        cv2.putText(
-            frame,
-            text="m: flip image. r: switch recognizer. x and z: tune tolerance. ESC: quit.",
-            org=(10, 20),
-            fontFace=0,
-            fontScale=1e-3 * height,
-            color=(0, 0, 200),
-            thickness=thick,
-        )
+        label_info(frame, botton_info, fps_info, tolerance_info, recognizer_info)
 
         cv2.imshow("track face", frame)
 

@@ -91,3 +91,15 @@ heroku config:set FACE_END=...
 
 - [Opencv Haar cascade face detection](https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xml)
 - [Facenet keras model](https://drive.google.com/drive/folders/12aMYASGCKvDdkygSv1yQq8ns03AStDO_)
+
+# Tracker
+
+## Opencv
+
+- [Goturn model](https://github.com/spmallick/goturn-files)
+
+# Object Detection
+
+## YOLO
+
+- [V2 ~ 4](https://github.com/AlexeyAB/darknet#pre-trained-models)

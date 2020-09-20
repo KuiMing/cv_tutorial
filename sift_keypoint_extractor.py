@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import imageio
 
+# pylint: disable=maybe-no-member
 np.random.seed(23)
 
 

@@ -1,6 +1,8 @@
 import argparse
 import cv2
 
+# pylint: disable=maybe-no-member
+
 
 def main():
     parser = argparse.ArgumentParser()

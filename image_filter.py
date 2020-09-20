@@ -16,7 +16,7 @@ from PIL.ImageFilter import (
     SHARPEN,
 )
 
-
+# pylint: disable=maybe-no-member
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="image path", type=str)

@@ -1,7 +1,7 @@
 import argparse
 import cv2
 
-
+# pylint: disable=maybe-no-member
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--video", help="video path", type=str)

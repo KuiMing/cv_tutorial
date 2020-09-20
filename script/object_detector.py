@@ -65,13 +65,24 @@ def detect_video(video, model):
             mirror = not mirror
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="image path", type=str)
     parser.add_argument("-v", "--video", help="video path", type=str)
+    parser.add_argument(
+        "-c", "--configure", help="cfg path", type=str, default="yolov4-tiny.cfg"
+    )
+    parser.add_argument(
+        "-w", "--weight", help="weights path", type=str, default="yolov4-tiny.weights"
+    )
     args = parser.parse_args()
+    return args
 
-    model = cv2.dnn_DetectionModel("yolov4-tiny.cfg", "yolov4-tiny.weights")
+
+def main():
+
+    args = parse_args()
+    model = cv2.dnn_DetectionModel(args.configure, args.weight)
     model.setInputParams(size=(416, 416), scale=1 / 255)
 
     ## Another way

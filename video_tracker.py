@@ -94,6 +94,21 @@ def label_object(frame, left, top, right, bottom, name):
     )
 
 
+def label_info(frame, *args):
+    height, width, _ = frame.shape
+    thick = int((height + width) // 900)
+    info = ", ".join(args)
+    cv2.putText(
+        frame,
+        text=info,
+        org=(10, 20),
+        fontFace=0,
+        fontScale=1e-3 * height,
+        color=(0, 0, 255),
+        thickness=thick,
+    )
+
+
 def main():
     tracker_type = list(CV_TRACKER.keys())
     tracker_type.append("dlib")
@@ -131,19 +146,11 @@ def main():
         track_obj.update(frame)
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
+
         fps_info = "fps: {}".format(str(int(fps)))
         tracking_info = "Tracker: {}".format(tracking)
+        label_info(frame, fps_info, tracking_info)
 
-        info = ", ".join([fps_info, tracking_info])
-        cv2.putText(
-            frame,
-            text=info,
-            org=(10, 20),
-            fontFace=0,
-            fontScale=1e-3 * height,
-            color=(0, 0, 255),
-            thickness=thick,
-        )
         cv2.imshow("track object", frame)
 
         keyboard = cv2.waitKey(1)

@@ -71,12 +71,14 @@ def track_object(frame, bbox, label, tracking):
 
 
 def label_object(frame, left, top, right, bottom, name):
+    height, width, _ = frame.shape
+    thick = int((height + width) // 900)
     cv2.rectangle(
-        frame, pt1=(left, top), pt2=(right, bottom), color=(0, 0, 255), thickness=2
+        frame, pt1=(left, top), pt2=(right, bottom), color=(0, 0, 255), thickness=thick
     )
     cv2.rectangle(
         frame,
-        pt1=(left, bottom - 35),
+        pt1=(left, bottom - int(35 * 1e-3 * height)),
         pt2=(right, bottom),
         color=(0, 0, 255),
         thickness=cv2.FILLED,
@@ -86,9 +88,9 @@ def label_object(frame, left, top, right, bottom, name):
         text=name,
         org=(left + 6, bottom - 6),
         fontFace=cv2.FONT_HERSHEY_DUPLEX,
-        fontScale=1.0,
+        fontScale=1e-3 * height,
         color=(255, 255, 255),
-        thickness=1,
+        thickness=thick,
     )
 
 
@@ -124,8 +126,6 @@ def main():
         if not ret_val:
             break
 
-        height, width, _ = frame.shape
-        thick = int((height + width) // 900)
         timer = cv2.getTickCount()
 
         track_obj.update(frame)
@@ -133,6 +133,7 @@ def main():
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
         fps_info = "fps: {}".format(str(int(fps)))
         tracking_info = "Tracker: {}".format(tracking)
+
         info = ", ".join([fps_info, tracking_info])
         cv2.putText(
             frame,

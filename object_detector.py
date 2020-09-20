@@ -51,7 +51,8 @@ def detect_video(video, model):
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
         fps_info = "fps: {}".format(str(int(fps)))
-        label_info(frame, fps_info)
+        button_info = "Press ESC to quit"
+        label_info(frame, button_info, fps_info)
 
         cv2.namedWindow("YOLO", cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty("YOLO", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)

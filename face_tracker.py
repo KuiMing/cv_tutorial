@@ -138,8 +138,9 @@ def show_face():
     switch = 0
     tracking = False
     while True:
-        ret_val, frame = cam.read()
+        timer = cv2.getTickCount()
 
+        ret_val, frame = cam.read()
         if not ret_val:
             break
 
@@ -150,8 +151,6 @@ def show_face():
         counter = counter % 10000
         height, width, _ = frame.shape
         thick = int((height + width) // 900)
-
-        timer = cv2.getTickCount()
 
         shrink = 0.25
         if counter % 15 == 1:

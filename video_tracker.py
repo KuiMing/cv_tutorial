@@ -136,17 +136,15 @@ def main():
     track_obj = track_object(frame, bbox, label, tracking)
 
     while True:
-        ret_val, frame = video_cap.read()
+        timer = cv2.getTickCount()
 
+        ret_val, frame = video_cap.read()
         if not ret_val:
             break
-
-        timer = cv2.getTickCount()
 
         track_obj.update(frame)
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-
         fps_info = "fps: {}".format(str(int(fps)))
         tracking_info = "Tracker: {}".format(tracking)
         label_info(frame, fps_info, tracking_info)

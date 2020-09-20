@@ -170,8 +170,9 @@ def show_face():
     switch = 0
     cv2.namedWindow("track face", cv2.WINDOW_GUI_NORMAL)
     while True:
-        ret_val, frame = cam.read()
+        timer = cv2.getTickCount()
 
+        ret_val, frame = cam.read()
         if not ret_val:
             break
 
@@ -181,8 +182,8 @@ def show_face():
         height, width, _ = frame.shape
         thick = int((height + width) // 900)
 
-        timer = cv2.getTickCount()
         recognizer.recognize_face(frame, tolerance)
+
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
         fps_info = "fps: {}".format(str(int(fps)))
         tolerance_info = "tolerance: {:.2f}".format(tolerance)

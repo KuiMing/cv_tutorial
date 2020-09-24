@@ -1,6 +1,5 @@
 import argparse
 import cv2
-import random
 from video_tracker import label_object, label_info
 
 # pylint: disable=maybe-no-member

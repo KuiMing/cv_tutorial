@@ -1,7 +1,7 @@
+import argparse
 import sys
 import cv2
 import dlib
-import argparse
 from image_labeler import label_object, label_info
 
 # pylint: disable=maybe-no-member

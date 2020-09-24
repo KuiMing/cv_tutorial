@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 from sift_feature_matching import resize_and_gray_image, parse_args
 
+# pylint: disable=maybe-no-member
+
 np.random.seed(23)
 
 

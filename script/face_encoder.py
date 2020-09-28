@@ -4,16 +4,19 @@
 """
 import glob
 import pickle
+import argparse
 import face_recognition
 import numpy as np
 from PIL import Image
 from mtcnn import MTCNN
 from keras.models import load_model
 import cv2
-import argparse
 
 # pylint: disable=maybe-no-member
 def align_face(image):
+    """
+    Face alignment
+    """
     landmark = face_recognition.face_landmarks(image, model="small")
     if len(landmark) > 0:
         eye_center = [
@@ -31,27 +34,47 @@ def align_face(image):
         return None
 
 
+def prewhiten(img):
+    """
+    Image whitening
+    """
+    mean = np.mean(img)
+    std = np.std(img)
+    std_adj = np.maximum(std, 1 / np.sqrt(img.size))
+    white_img = (img - mean) / std_adj
+    return white_img
+
+
+def l2_normalize(values):
+    """
+    L2 nomlization
+    """
+    output = values / np.sqrt(
+        np.maximum(np.sum(np.square(values), axis=-1, keepdims=True), 1e-10)
+    )
+    return output
+
+
 class FacenetEncoding:
+    """
+    Encoding with facenet
+    """
+
     def __init__(self, img_folder, model_path):
         self.filenames = glob.glob("{}/*/*".format(img_folder))
         self.image_size = 160
         self.detector = MTCNN()
         self.model = load_model(model_path)
 
-    def prewhiten(self, img):
-        mean = np.mean(img)
-        std = np.std(img)
-        std_adj = np.maximum(std, 1 / np.sqrt(img.size))
-        white_img = (img - mean) / std_adj
-        return white_img
-
-    def l2_normalize(self, x):
-        output = x / np.sqrt(
-            np.maximum(np.sum(np.square(x), axis=-1, keepdims=True), 1e-10)
-        )
-        return output
-
     def process_image(self, img):
+        """
+        Process image:
+        1. Get face bounding box
+        2. Align Face
+        3. Resize Face image
+        4. Whiten image
+        5. Rescale for keras model
+        """
         faces = self.detector.detect_faces(img)
         if len(faces) > 0:
             (left, top, width, height) = faces[0]["box"]
@@ -59,9 +82,10 @@ class FacenetEncoding:
             face = align_face(face)
             if face is not None:
                 face_img = cv2.resize(face, (self.image_size, self.image_size))
-                face_img = self.prewhiten(face_img)
+                face_img = prewhiten(face_img)
                 face_img = face_img[np.newaxis, :]
                 return face_img
+        return None
 
     def __call__(self):
         face_data_names = []
@@ -73,9 +97,7 @@ class FacenetEncoding:
             img = cv2.imread(img_path)
             face_img = self.process_image(img)
             if face_img is not None:
-                encoding = self.l2_normalize(
-                    np.concatenate(self.model.predict(face_img))
-                )
+                encoding = l2_normalize(np.concatenate(self.model.predict(face_img)))
                 face_data_encodings.append(encoding)
                 face_data_names.append(name)
                 print("{} is encoded".format(img_path))
@@ -89,6 +111,10 @@ class FacenetEncoding:
 
 
 class DlibEncoding:
+    """
+    Encoding with dlib
+    """
+
     def __init__(self, img_folder):
         self.filenames = glob.glob("{}/*/*".format(img_folder))
 
@@ -115,6 +141,10 @@ class DlibEncoding:
 
 
 class OpencvEncoding:
+    """
+    Encoding with opencv
+    """
+
     def __init__(self, img_folder, xml_path):
         self.filenames = glob.glob("{}/*/*".format(img_folder))
         self.detector = cv2.CascadeClassifier(xml_path)
@@ -122,20 +152,29 @@ class OpencvEncoding:
         self.image_size = 160
 
     def get_face_chip(self, image):
+        """
+        Crop Face image
+        """
         face = self.detector.detectMultiScale(image, minSize=(100, 100))
         if len(face) > 0:
             left, top, width, height = face[0]
             return image[top : top + height, left : left + width]
-        else:
-            return None
+        return None
 
     def process_image(self, image):
+        """
+        Process image:
+        1. Crop face image
+        2. Align face
+        3. Resize face
+        """
         face_chip = self.get_face_chip(image)
         if face_chip is not None:
             aligned_face = align_face(face_chip)
             if aligned_face is not None:
                 face_img = cv2.resize(aligned_face, (self.image_size, self.image_size))
                 return face_img
+        return None
 
     def __call__(self):
         face_data_names = []
@@ -161,6 +200,9 @@ class OpencvEncoding:
 
 
 def parse_args():
+    """
+    Parse argument
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="image folder", type=str)
     parser.add_argument(
@@ -187,7 +229,7 @@ def parse_args():
 
 def main():
     """
-    Encode face images and save picle or yml file
+    Encode face images and save pickle or yml file
     """
     args = parse_args()
     if args.encoder == "dlib":

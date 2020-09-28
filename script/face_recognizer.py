@@ -1,10 +1,13 @@
+"""
+Face recognition with Dlib, Facenet and Opencv
+"""
 import pickle
 import cv2
 import face_recognition
 import numpy as np
 from keras.models import load_model
 from mtcnn import MTCNN
-from face_encoder import align_face
+from face_encoder import align_face, prewhiten, l2_normalize
 from image_labeler import label_object, label_info
 
 
@@ -12,6 +15,10 @@ from image_labeler import label_object, label_info
 
 
 class FacenetRecognition:
+    """
+    Face recognition with facenet
+    """
+
     def __init__(self):
         with open("face_data_facenet.pickle", "rb") as f_r:
             self.names, self.encodings = pickle.load(f_r)
@@ -21,15 +28,26 @@ class FacenetRecognition:
         self.model = load_model("facenet_keras.h5")
 
     def process_image(self, img):
+        """
+        Process image:
+        1. Align Face
+        2. Resize Face image
+        3. Whiten image
+        4. Rescale for keras model
+        """
         face = np.array(img)
         face = align_face(face)
         if face is not None:
             face_img = cv2.resize(face, (self.image_size, self.image_size))
-            face_img = self.prewhiten(face_img)
+            face_img = prewhiten(face_img)
             face_img = face_img[np.newaxis, :]
             return face_img
+        return None
 
     def detect_face(self, frame, shrink):
+        """
+        Detect and encode face
+        """
         face_encodings = []
         face_locations = []
         small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
@@ -42,28 +60,16 @@ class FacenetRecognition:
                 small_frame[top : top + height, left : left + width]
             )
             if face_img is not None:
-                encoding = self.l2_normalize(
-                    np.concatenate(self.model.predict(face_img))
-                )
+                encoding = l2_normalize(np.concatenate(self.model.predict(face_img)))
                 location = (left, top, left + width, top + height)
                 face_encodings.append(encoding)
                 face_locations.append(location)
         return face_locations, face_encodings
 
-    def prewhiten(self, img):
-        mean = np.mean(img)
-        std = np.std(img)
-        std_adj = np.maximum(std, 1 / np.sqrt(img.size))
-        white_img = (img - mean) / std_adj
-        return white_img
-
-    def l2_normalize(self, x):
-        output = x / np.sqrt(
-            np.maximum(np.sum(np.square(x), axis=-1, keepdims=True), 1e-10)
-        )
-        return output
-
     def recognize_face(self, frame, tolerance=0.5):
+        """
+        Recognize face
+        """
         shrink = 0.25
         face_locations, face_encodings = self.detect_face(frame, shrink)
         for location, face_encoding in zip(face_locations, face_encodings):
@@ -77,18 +83,28 @@ class FacenetRecognition:
 
 
 class DlibFaceRecognition:
+    """
+    Face recognition with dlib
+    """
+
     def __init__(self):
         with open("face_data_dlib.pickle", "rb") as f_r:
             self.names, self.encodings = pickle.load(f_r)
         f_r.close()
 
     def detect_face(self, frame, shrink):
+        """
+        Detect face
+        """
         small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
         face_locations = face_recognition.face_locations(small_frame)
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         return face_locations, face_encodings
 
     def recognize_face(self, frame, tolerance=0.5):
+        """
+        Recognize face
+        """
         shrink = 0.25
         face_locations, face_encodings = self.detect_face(frame, shrink)
         for location, face_encoding in zip(face_locations, face_encodings):
@@ -102,6 +118,10 @@ class DlibFaceRecognition:
 
 
 class OpencvFaceRecognition:
+    """
+    Face recognition with opencv
+    """
+
     def __init__(self):
         self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
         self.face_recognizer.read("face_data.yml")
@@ -111,11 +131,17 @@ class OpencvFaceRecognition:
         self.image_size = 160
 
     def detect_face(self, frame, shrink):
+        """
+        Detect face
+        """
         small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
         faces = self.face_detector.detectMultiScale(small_frame, minSize=(100, 100))
         return faces
 
     def recognize_face(self, frame, tolerance=1):
+        """
+        Recognize face
+        """
         shrink = 1
         faces = self.detect_face(frame, shrink)
         for location in faces:
@@ -142,6 +168,9 @@ RECOGNIZER = {
 
 
 def show_face():
+    """
+    Detect and recognize faces with webcam
+    """
     cam = cv2.VideoCapture(0)
     tolerance = 0.6
     mirror = True
@@ -175,7 +204,6 @@ def show_face():
         cv2.imshow("Face", frame)
 
         keyboard = cv2.waitKey(1)
-        # esc to quit
         if keyboard == 27:
             break
         # press m to flip frame
@@ -186,6 +214,7 @@ def show_face():
             switch += 1
             switch %= len(recognizer_type)
             recognizer = RECOGNIZER[recognizer_type[switch]]
+        # press x and z to tune tolerance
         if chr(keyboard & 255) == "x":
             tolerance += 0.1
         if chr(keyboard & 255) == "z":
@@ -195,6 +224,9 @@ def show_face():
 
 
 def main():
+    """
+    Face Recognition
+    """
     show_face()
 
 

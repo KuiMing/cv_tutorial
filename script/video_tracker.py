@@ -1,3 +1,6 @@
+"""
+Track selected objects on the video
+"""
 import argparse
 import sys
 import cv2
@@ -20,18 +23,28 @@ CV_TRACKER = {
 
 
 class DlibCorrelationTracker:
+    """
+    Dlib tracker
+    """
+
     def __init__(self, name, threshold):
         self._tracker = dlib.correlation_tracker()
         self._name = name
         self.threshold = threshold
 
     def init(self, location, frame):
+        """
+        Initial tracker
+        """
         left, top, width, height = location
         rect = dlib.rectangle(left, top, left + width, top + height)
         self._tracker.start_track(frame, rect)
         label_object(frame, left, top, left + width, top + height, self._name)
 
     def update(self, frame):
+        """
+        Update tracker
+        """
         confidence = self._tracker.update(frame)
         pos = self._tracker.get_position()
         if confidence > self.threshold:
@@ -43,16 +56,26 @@ class DlibCorrelationTracker:
 
 
 class OpencvTracker:
+    """
+    Opencv trackers
+    """
+
     def __init__(self, name, tracker_name):
         self._tracker = CV_TRACKER[tracker_name]()
         self._name = name
 
     def init(self, location, frame):
+        """
+        Initial tracker
+        """
         left, top, width, height = location
         self._tracker.init(frame, location)
         label_object(frame, left, top, left + width, top + height, self._name)
 
     def update(self, frame):
+        """
+        Update tracker
+        """
         ret_val, pos = self._tracker.update(frame)
         if ret_val:
             left = int(pos[0])
@@ -63,6 +86,9 @@ class OpencvTracker:
 
 
 def track_object(frame, bbox, label, tracking):
+    """
+    track the object
+    """
     if tracking == "dlib":
         track = DlibCorrelationTracker(label, 5)
     else:
@@ -72,6 +98,9 @@ def track_object(frame, bbox, label, tracking):
 
 
 def main():
+    """
+    Select a object and track it.
+    """
     tracker_type = list(CV_TRACKER.keys())
     tracker_type.append("dlib")
     parser = argparse.ArgumentParser()

@@ -1,8 +1,11 @@
+"""
+Recognize and track faces
+"""
 import pickle
 import cv2
 import face_recognition
-import dlib
 from image_labeler import label_object, label_info
+from video_tracker import DlibCorrelationTracker, OpencvTracker
 
 # pylint: disable=maybe-no-member
 with open("face_data_dlib.pickle", "rb") as f_r:
@@ -22,51 +25,10 @@ CV_TRACKER = {
 }
 
 
-class DlibCorrelationTracker:
-    def __init__(self, name, threshold):
-        self._tracker = dlib.correlation_tracker()
-        self._name = name
-        self.threshold = threshold
-
-    def init(self, location, frame):
-        top, right, bottom, left = location
-        rect = dlib.rectangle(left, top, right, bottom)
-        self._tracker.start_track(frame, rect)
-        label_object(frame, left, top, right, bottom, self._name)
-
-    def update(self, frame):
-        confidence = self._tracker.update(frame)
-        pos = self._tracker.get_position()
-        if confidence > self.threshold:
-            left = int(pos.left())
-            top = int(pos.top())
-            right = int(pos.right())
-            bottom = int(pos.bottom())
-            label_object(frame, left, top, right, bottom, self._name)
-
-
-class OpencvTracker:
-    def __init__(self, name, tracker_name):
-        self._tracker = CV_TRACKER[tracker_name]()
-        self._name = name
-
-    def init(self, location, frame):
-        top, right, bottom, left = location
-        rect = (left, top, right - left, bottom - top)
-        self._tracker.init(frame, rect)
-        label_object(frame, left, top, right, bottom, self._name)
-
-    def update(self, frame):
-        ret_val, pos = self._tracker.update(frame)
-        if ret_val:
-            left = int(pos[0])
-            top = int(pos[1])
-            right = int(pos[0] + pos[2])
-            bottom = int(pos[1] + pos[3])
-            label_object(frame, left, top, right, bottom, self._name)
-
-
 def recognize_track_face(frame, tolerance, tracking):
+    """
+    Recognize and track faces
+    """
     shrink = 0.25
     face_locations, face_encodings = detect_face(frame, shrink)
     tracks = []
@@ -81,12 +43,15 @@ def recognize_track_face(frame, tolerance, tracking):
             track = DlibCorrelationTracker(name, 5)
         else:
             track = OpencvTracker(name, tracking)
-        track.init((top, right, bottom, left), frame)
+        track.init((left, top, right - left, bottom - top), frame)
         tracks.append(track)
     return tracks
 
 
 def detect_face(frame, shrink):
+    """
+    Detect and encode face
+    """
     small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
     face_locations = face_recognition.face_locations(small_frame)
     face_encodings = face_recognition.face_encodings(small_frame, face_locations)
@@ -94,6 +59,9 @@ def detect_face(frame, shrink):
 
 
 def recognize_face(frame, tolerance):
+    """
+    Recognize faces
+    """
     shrink = 0.25
     face_locations, face_encodings = detect_face(frame, shrink)
     for location, face_encoding in zip(face_locations, face_encodings):
@@ -107,6 +75,9 @@ def recognize_face(frame, tolerance):
 
 
 def show_face():
+    """
+    Detect and recognize faces with webcam
+    """
     cam = cv2.VideoCapture(0)
     tolerance = 0.5
     mirror = True
@@ -164,13 +135,10 @@ def show_face():
         cv2.imshow("Track", frame)
 
         keyboard = cv2.waitKey(1)
-        # esc to quit
         if keyboard == 27:
             break
-        # press m to flip frame
         if chr(keyboard & 255) == "m":
             mirror = not mirror
-        # switch tracker
         if chr(keyboard & 255) == "t":
             TRACKERS.clear()
             switch += 1
@@ -181,6 +149,9 @@ def show_face():
 
 
 def main():
+    """
+    Recognize and track faces
+    """
     show_face()
 
 

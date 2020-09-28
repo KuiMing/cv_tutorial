@@ -1,9 +1,15 @@
+"""
+Label images with rectangle and text
+"""
 import cv2
 
 # pylint: disable=maybe-no-member
 
 
 def label_object(frame, left, top, right, bottom, name):
+    """
+    Label detected objects on images
+    """
     height, width, _ = frame.shape
     thick = int((height + width) // 900)
     cv2.rectangle(
@@ -28,6 +34,9 @@ def label_object(frame, left, top, right, bottom, name):
 
 
 def label_info(frame, button_info="", *args):
+    """
+    Put video information on display
+    """
     height, width, _ = frame.shape
     thick = int((height + width) // 900)
     info = ", ".join(args)

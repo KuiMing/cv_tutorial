@@ -1,3 +1,6 @@
+"""
+SIFT for feature maching
+"""
 import argparse
 import cv2
 import numpy as np
@@ -9,6 +12,10 @@ np.random.seed(23)
 
 
 def resize_and_gray_image(image_path):
+    """
+    Resize images
+    Convert images into gray scale
+    """
     try:
         img = imageio.imread(image_path)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -20,6 +27,9 @@ def resize_and_gray_image(image_path):
 
 
 def sift_match_feature(train_image, query_image):
+    """
+    Match features of images with SIFT
+    """
     img1, img1_gray = resize_and_gray_image(train_image)
     img2, img2_gray = resize_and_gray_image(query_image)
 
@@ -32,9 +42,9 @@ def sift_match_feature(train_image, query_image):
     matches = bf_matcher.knnMatch(des1, des2, k=2)
 
     good_matches = []
-    for m, n in matches:
-        if m.distance < 0.75 * n.distance:
-            good_matches.append(m)
+    for m_1, m_2 in matches:
+        if m_1.distance < 0.75 * m_2.distance:
+            good_matches.append(m_1)
     img3 = cv2.drawMatches(img1, kp1, img2, kp2, good_matches, img1, flags=2)
 
     cv2.imshow("feature matching", img3)
@@ -44,6 +54,9 @@ def sift_match_feature(train_image, query_image):
 
 
 def parse_args():
+    """
+    Parse arguments
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-t",
@@ -66,6 +79,9 @@ def parse_args():
 
 
 def main():
+    """
+    SIFT for feature maching
+    """
     args = parse_args()
     matches = sift_match_feature(args.train_image, args.query_image)
 

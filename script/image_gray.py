@@ -1,8 +1,14 @@
+"""
+Grays cale image
+"""
 import argparse
 import cv2
 
-
+# pylint: disable=maybe-no-member
 def main():
+    """
+    Grays cale image
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="image path", type=str)
 

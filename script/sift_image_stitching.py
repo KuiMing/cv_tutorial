@@ -1,3 +1,6 @@
+"""
+SIFT for image stitching
+"""
 import cv2
 import numpy as np
 from sift_feature_matching import resize_and_gray_image, parse_args
@@ -7,19 +10,24 @@ from sift_feature_matching import resize_and_gray_image, parse_args
 np.random.seed(23)
 
 
-def get_homography(kpsT, kpsQ, matches, reprojThresh):
-    point_t = np.float32([kp.pt for kp in kpsT])
-    point_q = np.float32([kp.pt for kp in kpsQ])
+def get_homography(kpst, kpsq, matches, reproj_thresh):
+    """
+    Get homgraphy between two images
+    """
+    point_t = np.float32([kp.pt for kp in kpst])
+    point_q = np.float32([kp.pt for kp in kpsq])
     if len(matches) > 4:
         pts_t = np.float32([point_t[m.queryIdx] for m in matches])
         pts_q = np.float32([point_q[m.trainIdx] for m in matches])
-        homograph, _ = cv2.findHomography(pts_t, pts_q, cv2.RANSAC, reprojThresh)
+        homograph, _ = cv2.findHomography(pts_t, pts_q, cv2.RANSAC, reproj_thresh)
         return homograph
-    else:
-        return None
+    return None
 
 
 def main():
+    """
+    SIFT for image stitching
+    """
     args = parse_args()
     train_img, train_gray = resize_and_gray_image(args.train_image)
     query_img, query_gray = resize_and_gray_image(args.query_image)
@@ -33,13 +41,13 @@ def main():
     matches = bf_matcher.knnMatch(des_t, des_q, k=2)
 
     good_matches = []
-    for m, n in matches:
-        if m.distance < 0.75 * n.distance:
-            good_matches.append(m)
+    for m_1, m_2 in matches:
+        if m_1.distance < 0.75 * m_2.distance:
+            good_matches.append(m_1)
 
     width = train_img.shape[1] + query_img.shape[1]
     height = train_img.shape[0] + query_img.shape[0]
-    homograph = get_homography(kps_t, kps_q, good_matches, reprojThresh=4)
+    homograph = get_homography(kps_t, kps_q, good_matches, reproj_thresh=4)
 
     cv2.imshow("keypoint", np.concatenate([train_img, query_img], axis=1))
     cv2.waitKey()

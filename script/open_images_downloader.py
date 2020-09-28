@@ -1,3 +1,7 @@
+"""
+1. Download images and annotations from Open images dataset
+2. Output files that fulfill yolo training
+"""
 import pandas as pd
 import numpy as np
 import wget
@@ -5,6 +9,9 @@ import glob
 
 
 def get_image_list(train_annotation, train_images, classes, label):
+    """
+    Get the list of images with specific labels
+    """
     ids = classes[classes["classes"] == label].id.values
     output = train_annotation[train_annotation.LabelName.isin(ids)]
     output["label"] = label
@@ -16,7 +23,9 @@ def get_image_list(train_annotation, train_images, classes, label):
 
 
 def main():
-
+    """
+    Download images and annotation with specific labels, and output files for yolo training.
+    """
     select_label = ["Helmet", "Glasses"]
     train_annotation = pd.read_csv("oidv6-train-annotations-bbox.csv")
     train_images = pd.read_csv("train-images-boxable-with-rotation.csv")
@@ -68,9 +77,9 @@ def main():
     f_w.close()
 
     valid = list(set(files) - set(train))
-    with open("valid.txt", "a") as f:
+    with open("valid.txt", "a") as f_w:
         for i in valid:
-            f.write(i + "\n")
+            f_w.write(i + "\n")
     f_w.close()
 
 

@@ -1,8 +1,14 @@
+"""
+Remove background in video
+"""
 import argparse
 import cv2
 
 # pylint: disable=maybe-no-member
 def main():
+    """
+    Remove background in video
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--video", help="video path", type=str)
     args = parser.parse_args()

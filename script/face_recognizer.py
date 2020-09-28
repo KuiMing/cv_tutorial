@@ -214,7 +214,6 @@ def show_face():
             switch += 1
             switch %= len(recognizer_type)
             recognizer = RECOGNIZER[recognizer_type[switch]]
-        # press x and z to tune tolerance
         if chr(keyboard & 255) == "x":
             tolerance += 0.1
         if chr(keyboard & 255) == "z":

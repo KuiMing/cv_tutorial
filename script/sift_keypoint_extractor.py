@@ -1,3 +1,6 @@
+"""
+Extract keypoints of images with SIFT
+"""
 import argparse
 import cv2
 import numpy as np
@@ -8,6 +11,9 @@ np.random.seed(23)
 
 
 def main():
+    """
+    Extract keypoints of images with SIFT
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-i",

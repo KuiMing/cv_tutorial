@@ -1,9 +1,16 @@
+"""
+Vintage filter
+"""
+import argparse
 import cv2
 import numpy as np
-import argparse
+
 
 # pylint: disable=maybe-no-member
 def main():
+    """
+    Vintage filter
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="image path", type=str)
     args = parser.parse_args()
@@ -25,6 +32,7 @@ def main():
         # esc to quit
         if keyboard == 27:
             break
+        # press x and z to tune filter size
         if chr(keyboard & 255) == "x":
             size += 10
         if chr(keyboard & 255) == "z":

@@ -1,8 +1,10 @@
+"""
+Easy filter from opencv and pillow
+"""
 import argparse
 import cv2
-from PIL import Image, ImageFilter
 import numpy as np
-
+from PIL import Image
 from PIL.ImageFilter import (
     BLUR,
     CONTOUR,
@@ -18,6 +20,9 @@ from PIL.ImageFilter import (
 
 # pylint: disable=maybe-no-member
 def main():
+    """
+    Easy filter for images
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="image path", type=str)
     args = parser.parse_args()

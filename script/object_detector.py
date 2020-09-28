@@ -1,3 +1,6 @@
+"""
+Objecet detection with yolo and opencv
+"""
 import argparse
 import cv2
 from video_tracker import label_object, label_info
@@ -10,6 +13,9 @@ with open(CLASSNAME, "r") as f:
 
 
 def detect_image(image, model):
+    """
+    Detect objects in the image
+    """
     img = cv2.imread(image)
     detect_object(img, model)
     cv2.namedWindow("YOLO", cv2.WND_PROP_FULLSCREEN)
@@ -19,6 +25,9 @@ def detect_image(image, model):
 
 
 def detect_object(frame, model, shrink=1):
+    """
+    Detect objects
+    """
     small_frame = cv2.resize(frame, dsize=(0, 0), fx=shrink, fy=shrink)
     classes, confidences, locations = model.detect(
         small_frame, confThreshold=0.1, nmsThreshold=0.4
@@ -34,6 +43,9 @@ def detect_object(frame, model, shrink=1):
 
 
 def detect_video(video, model):
+    """
+    Detect objects on the video or the webcam
+    """
     video_cap = cv2.VideoCapture(video)
     mirror = False
     while True:
@@ -65,6 +77,9 @@ def detect_video(video, model):
 
 
 def parse_args():
+    """
+    Parse arguments
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", help="image path", type=str)
     parser.add_argument("-v", "--video", help="video path", type=str)
@@ -79,7 +94,9 @@ def parse_args():
 
 
 def main():
-
+    """
+    Object detection with yolo v2~v4
+    """
     args = parse_args()
     model = cv2.dnn_DetectionModel(args.configure, args.weight)
     model.setInputParams(size=(416, 416), scale=1 / 255)
@@ -99,7 +116,7 @@ def main():
     else:
         try:
             video = int(args.video)
-        except:
+        except ValueError:
             video = args.video
         detect_video(video, model)
 

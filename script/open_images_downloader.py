@@ -2,10 +2,10 @@
 1. Download images and annotations from Open images dataset
 2. Output files that fulfill yolo training
 """
+import glob
 import pandas as pd
 import numpy as np
 import wget
-import glob
 
 
 def get_image_list(train_annotation, train_images, classes, label):
@@ -22,6 +22,46 @@ def get_image_list(train_annotation, train_images, classes, label):
     return output
 
 
+def write_annotation(select_label, classes, imageid, location, label):
+    """
+    Save annotation into txt files
+    """
+    xmin, xmax, ymin, ymax = location
+    with open("images/{}.txt".format(imageid), "a") as f_w:
+        f_w.write(
+            " ".join(
+                [
+                    select_label.index(
+                        classes.loc[classes.id == label, "classes"].values[0]
+                    ),
+                    str((xmax + xmin) / 2),
+                    str((ymin + ymax) / 2),
+                    str(xmax - xmin),
+                    str(ymax - ymin),
+                    "\n",
+                ]
+            )
+        )
+    f_w.close()
+
+
+def write_image_list(files):
+    """
+    Write down paths of images for training and validation
+    """
+    train = np.random.choice(files, size=round(len(files) * 0.8))
+    with open("train.txt", "a") as f_w:
+        for i in train:
+            f_w.write(i + "\n")
+    f_w.close()
+
+    valid = list(set(files) - set(train))
+    with open("valid.txt", "a") as f_w:
+        for i in valid:
+            f_w.write(i + "\n")
+    f_w.close()
+
+
 def main():
     """
     Download images and annotation with specific labels, and output files for yolo training.
@@ -33,8 +73,9 @@ def main():
 
     select = pd.DataFrame()
     for i in select_label:
-        output = get_image_list(train_annotation, train_images, classes, i)
-        select = select.append(output)
+        select = select.append(
+            get_image_list(train_annotation, train_images, classes, i)
+        )
 
     select = select.reset_index(drop=True)
     select_image = train_images[train_images.ImageID.isin(select.ImageID.unique())]
@@ -51,36 +92,10 @@ def main():
     # annotation files
     select = select[["ImageID", "XMin", "XMax", "YMin", "YMax", "LabelName"]].values
     for i, xmin, xmax, ymin, ymax, label in select:
-        with open("images/{}.txt".format(i), "a") as f_w:
-            f_w.write(
-                " ".join(
-                    [
-                        select_label.index(
-                            classes.loc[classes.id == label, "classes"].values[0]
-                        ),
-                        str((xmax + xmin) / 2),
-                        str((ymin + ymax) / 2),
-                        str(xmax - xmin),
-                        str(ymax - ymin),
-                        "\n",
-                    ]
-                )
-            )
-        f_w.close()
+        write_annotation(select_label, classes, i, (xmin, xmax, ymin, ymax), label)
 
     # Prepare files for training
-    files = glob.glob("images/*.jpg")
-    train = np.random.choice(files, size=round(len(files) * 0.8))
-    with open("train.txt", "a") as f_w:
-        for i in train:
-            f_w.write(i + "\n")
-    f_w.close()
-
-    valid = list(set(files) - set(train))
-    with open("valid.txt", "a") as f_w:
-        for i in valid:
-            f_w.write(i + "\n")
-    f_w.close()
+    write_image_list(glob.glob("images/*.jpg"))
 
 
 if __name__ == "__main__":

@@ -66,11 +66,10 @@ class FacenetRecognition:
                 face_locations.append(location)
         return face_locations, face_encodings
 
-    def recognize_face(self, frame, tolerance=0.5):
+    def recognize_face(self, frame, tolerance=0.5, shrink=0.25):
         """
         Recognize face
         """
-        shrink = 0.25
         face_locations, face_encodings = self.detect_face(frame, shrink)
         for location, face_encoding in zip(face_locations, face_encodings):
             left, top, right, bottom = [int(i / shrink) for i in location]
@@ -101,11 +100,10 @@ class DlibFaceRecognition:
         face_encodings = face_recognition.face_encodings(small_frame, face_locations)
         return face_locations, face_encodings
 
-    def recognize_face(self, frame, tolerance=0.5):
+    def recognize_face(self, frame, tolerance=0.5, shrink=0.25):
         """
         Recognize face
         """
-        shrink = 0.25
         face_locations, face_encodings = self.detect_face(frame, shrink)
         for location, face_encoding in zip(face_locations, face_encodings):
             top, right, bottom, left = [int(i / shrink) for i in location]
@@ -138,11 +136,10 @@ class OpencvFaceRecognition:
         faces = self.face_detector.detectMultiScale(small_frame, minSize=(100, 100))
         return faces
 
-    def recognize_face(self, frame, tolerance=1):
+    def recognize_face(self, frame, tolerance=1, shrink=1):
         """
         Recognize face
         """
-        shrink = 1
         faces = self.detect_face(frame, shrink)
         for location in faces:
             left, top, width, height = [int(i / shrink) for i in location]

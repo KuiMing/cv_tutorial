@@ -1,6 +1,7 @@
 """
 Recognize and track faces
 """
+import time
 import pickle
 import cv2
 import face_recognition
@@ -25,11 +26,10 @@ CV_TRACKER = {
 }
 
 
-def recognize_track_face(frame, tolerance, tracking):
+def recognize_track_face(frame, tolerance, tracking, shrink=0.25):
     """
     Recognize and track faces
     """
-    shrink = 0.25
     face_locations, face_encodings = detect_face(frame, shrink)
     tracks = []
     for location, face_encoding in zip(face_locations, face_encodings):
@@ -39,6 +39,9 @@ def recognize_track_face(frame, tolerance, tracking):
             name = NAMES[distances.argmin()]
         else:
             name = "Unknown"
+        if not tracking:
+            label_object(frame, left, top, right, bottom, name)
+            return None
         if tracking == "dlib":
             track = DlibCorrelationTracker(name, 5)
         else:
@@ -58,23 +61,21 @@ def detect_face(frame, shrink):
     return face_locations, face_encodings
 
 
-def recognize_face(frame, tolerance):
+def clear_missed_face(frame, miss, shrink):
     """
-    Recognize faces
+    clear missed face trackers
     """
-    shrink = 0.25
-    face_locations, face_encodings = detect_face(frame, shrink)
-    for location, face_encoding in zip(face_locations, face_encodings):
-        top, right, bottom, left = [int(i / shrink) for i in location]
-        distances = face_recognition.face_distance(ENCODINGS, face_encoding)
-        if min(distances) < tolerance:
-            name = NAMES[distances.argmin()]
-        else:
-            name = "Unknown"
-        label_object(frame, left, top, right, bottom, name)
+    small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
+    face_locations = face_recognition.face_locations(small_frame)
+    if len(face_locations) != len(TRACKERS):
+        miss += 1
+    if (len(face_locations) != len(TRACKERS)) and (miss >= 15):
+        TRACKERS.clear()
+        miss = 0
+    return miss, len(face_locations)
 
 
-def show_face():
+def show_face(shrink=0.25):
     """
     Detect and recognize faces with webcam
     """
@@ -87,9 +88,8 @@ def show_face():
     tracker_type.extend(list(CV_TRACKER.keys()))
     switch = 0
     tracking = False
+    now = time.time()
     while True:
-        timer = cv2.getTickCount()
-
         ret_val, frame = cam.read()
         if not ret_val:
             break
@@ -100,29 +100,22 @@ def show_face():
         counter += 1
         counter = counter % 10000
 
-        shrink = 0.25
-        if counter % 15 == 1:
-            small_frame = cv2.resize(frame, (0, 0), fx=shrink, fy=shrink)
-            face_locations = face_recognition.face_locations(small_frame)
-            if len(face_locations) != len(TRACKERS):
-                miss += 1
-
-        if (len(face_locations) != len(TRACKERS)) and (miss >= 10):
-            TRACKERS.clear()
-            miss = 0
+        if counter % 5 == 1:
+            miss, face_num = clear_missed_face(frame, miss, shrink)
+            fps = 5 / (time.time() - now)
+            now = time.time()
+            fps_info = "fps: {}".format(str(int(fps)).zfill(2))
 
         if tracking:
-            if (len(TRACKERS) == 0) and (len(face_locations) > 0):
-                track_objs = recognize_track_face(frame, tolerance, tracking)
+            if (len(TRACKERS) == 0) and (face_num > 0):
+                track_objs = recognize_track_face(frame, tolerance, tracking, shrink)
                 TRACKERS.extend(track_objs)
             else:
                 for track_obj in TRACKERS:
                     track_obj.update(frame)
         else:
-            recognize_face(frame, tolerance)
+            recognize_track_face(frame, tolerance, tracking, shrink)
 
-        fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-        fps_info = "fps: {}".format(str(int(fps)))
         tolerance_info = "tolerance: {:.2f}".format(tolerance)
         tracking_info = "Tracker: {}".format(tracking)
         button_info = (
@@ -152,7 +145,7 @@ def main():
     """
     Recognize and track faces
     """
-    show_face()
+    show_face(0.25)
 
 
 if __name__ == "__main__":

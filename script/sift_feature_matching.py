@@ -50,8 +50,6 @@ def sift_match_feature(train_image, query_image):
     cv2.imshow("feature matching", img3)
     cv2.waitKey()
 
-    return good_matches
-
 
 def parse_args():
     """
@@ -83,7 +81,7 @@ def main():
     SIFT for feature maching
     """
     args = parse_args()
-    matches = sift_match_feature(args.train_image, args.query_image)
+    sift_match_feature(args.train_image, args.query_image)
 
 
 if __name__ == "__main__":

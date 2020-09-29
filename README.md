@@ -85,21 +85,19 @@ heroku config:set FACE_END=...
 
 6. `git push herku master`
 
-# Face Recognition
+# Pretrained Model
 
-## Pretrained Model
+- Face Recognition
+        - [Opencv Haar cascade face detection](https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xml)
+        - [Facenet keras model](https://drive.google.com/drive/folders/12aMYASGCKvDdkygSv1yQq8ns03AStDO_)
+- Tracker
+        - [Goturn model](https://github.com/spmallick/goturn-files)
+- Object Detection
+        - [YOLO V2 ~ 4](https://github.com/AlexeyAB/darknet#pre-trained-models)
 
-- [Opencv Haar cascade face detection](https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xml)
-- [Facenet keras model](https://drive.google.com/drive/folders/12aMYASGCKvDdkygSv1yQq8ns03AStDO_)
+# Open Images Dataset
 
-# Tracker
-
-## Opencv
-
-- [Goturn model](https://github.com/spmallick/goturn-files)
-
-# Object Detection
-
-## YOLO
-
-- [V2 ~ 4](https://github.com/AlexeyAB/darknet#pre-trained-models)
+- [Open Images Dataset](https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv)
+        - [Annotations of training data](https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv)
+        - [Class Names](https://storage.googleapis.com/openimages/v5/class-descriptions-boxable.csv)
+        - [Information of training images](https://storage.googleapis.com/openimages/2018_04/train/train-images-boxable-with-rotation.csv)

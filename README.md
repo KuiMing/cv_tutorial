@@ -104,7 +104,8 @@ heroku config:set FACE_END=...
 
 # Object Detection
 
-- Only YOLO V2, V3 and V4 are applicable
+- Only YOLO V2, V3 and V4 are applicable.
+- In this case, the pre-trained models were trained for MS COCO dataset. So, the file, [`coco.names`](https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/coco.names),  contains 80 class names is required.
 - Detect Objects in an image.
 
   example: 

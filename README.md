@@ -88,16 +88,40 @@ heroku config:set FACE_END=...
 # Pretrained Model
 
 - Face Recognition
-        - [Opencv Haar cascade face detection](https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xml)
-        - [Facenet keras model](https://drive.google.com/drive/folders/12aMYASGCKvDdkygSv1yQq8ns03AStDO_)
+  - [Opencv Haar cascade face detection](https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xml)
+  - [Facenet keras model](https://drive.google.com/drive/folders/12aMYASGCKvDdkygSv1yQq8ns03AStDO_)
 - Tracker
-        - [Goturn model](https://github.com/spmallick/goturn-files)
+  - [Goturn model](https://github.com/spmallick/goturn-files)
 - Object Detection
-        - [YOLO V2 ~ 4](https://github.com/AlexeyAB/darknet#pre-trained-models)
+  - [YOLO V2 ~ 4](https://github.com/AlexeyAB/darknet#pre-trained-models)
 
 # Open Images Dataset
 
 - [Open Images Dataset](https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv)
-        - [Annotations of training data](https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv)
-        - [Class Names](https://storage.googleapis.com/openimages/v5/class-descriptions-boxable.csv)
-        - [Information of training images](https://storage.googleapis.com/openimages/2018_04/train/train-images-boxable-with-rotation.csv)
+  - [Annotations of training data](https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv)
+  - [Class Names](https://storage.googleapis.com/openimages/v5/class-descriptions-boxable.csv)
+  - [Information of training images](https://storage.googleapis.com/openimages/2018_04/train/train-images-boxable-with-rotation.csv)
+
+# Object Detection
+
+- Only YOLO V2, V3 and V4 are applicable
+- Detect Objects in an image.
+
+  example: 
+  ```
+  python3.6 object_detector.py -i cat.jpg -c yolov4-tiny.cfg -w yolov4-tiny.weights
+  ```
+
+- Detect Objects in a video file or video stream.
+
+  example: 
+  ```
+  python3.6 object_detector.py -v test.mp4 -c yolov4-tiny.cfg -w yolov4-tiny.weights
+  ```
+
+- Detect Objects with your webcam.
+
+  example: 
+  ```
+  python3.6 object_detector.py -v 0 -c yolov4-tiny.cfg -w yolov4-tiny.weights
+  ```

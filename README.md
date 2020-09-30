@@ -110,19 +110,35 @@ heroku config:set FACE_END=...
 
   example: 
   ```
-  python3.6 object_detector.py -i cat.jpg -c yolov4-tiny.cfg -w yolov4-tiny.weights
+  python3 object_detector.py -i cat.jpg -c yolov4-tiny.cfg -w yolov4-tiny.weights
   ```
 
 - Detect Objects in a video file or video stream.
 
   example: 
   ```
-  python3.6 object_detector.py -v test.mp4 -c yolov4-tiny.cfg -w yolov4-tiny.weights
+  python3 object_detector.py -v test.mp4 -c yolov4-tiny.cfg -w yolov4-tiny.weights
   ```
 
 - Detect Objects with your webcam.
 
   example: 
   ```
-  python3.6 object_detector.py -v 0 -c yolov4-tiny.cfg -w yolov4-tiny.weights
+  python3 object_detector.py -v 0 -c yolov4-tiny.cfg -w yolov4-tiny.weights
   ```
+
+# Face Recognition
+
+## Fece encoding
+
+- Collect at least one image file for each person who should be recognized.
+- Put the images of each person into the folders with each person's name.
+- Put these folders into a folder.
+- Excute:
+  ```
+  python3 face_encoder.py -i <your image folder> -e <encoding method> -m <keras model> \
+  -x <xml for opencv face detector>
+  ```
+  - Applicable encoding methods: `dlib`, `facenet` and `opencv`
+  - If you choose `facenect`, keras model is necessary.
+  - If you choose `opencv`, xml for Haar cascade face detection is necessary.

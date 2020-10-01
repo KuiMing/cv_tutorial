@@ -129,7 +129,7 @@ heroku config:set FACE_END=...
 
 # Face Recognition
 
-## Fece encoding
+## Encoding
 
 - Collect at least one image file for each person who should be recognized.
 - Put the images of each person into the folders with each person's name.
@@ -142,3 +142,18 @@ heroku config:set FACE_END=...
   - Applicable encoding methods: `dlib`, `facenet` and `opencv`
   - If you choose `facenect`, keras model is necessary.
   - If you choose `opencv`, xml for Haar cascade face detection is necessary.
+- Output: 
+  - `dlib`: `face_data_dlib.pickle`
+  - `facenet`: `face_data_facenet.pickle`
+  - `opencv`: `face_data.yml`
+## Recognition
+- Put the encoding results in the same folder with `face_recognizer.py` and `face_tracker.py`.
+- Excute `face_recognizer.py`
+  ```
+  python3.py face_recognizer.py
+  ```
+  - Press `m` to flip the image.
+  - Press `r` to switch recognition method.
+  - Press `x` to increase the tolerance, and press `z` to decrease the tolerance.
+  - Press `ESC` to quit.
+
